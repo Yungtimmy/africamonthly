@@ -2,7 +2,18 @@ import { auth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { TaskList } from '@/components/tasks/TaskList'
 
-async function getTasksWithStatus(userId?: string) {
+interface TaskWithStatus {
+  id: string
+  title: string
+  description: string
+  points: number
+  task_type?: string
+  x_post_url?: string | null
+  x_actions?: string[] | null
+  submissionStatus: string | null
+}
+
+async function getTasksWithStatus(userId?: string): Promise<TaskWithStatus[]> {
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*')
