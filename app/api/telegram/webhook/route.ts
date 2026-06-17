@@ -30,10 +30,8 @@ async function handleStatsCommand(chatId: string, args: string) {
   const target = args.trim()
 
   if (target) {
-    // /stats @username or /stats <telegram_id> — look up specific user
     const cleanTarget = target.replace(/^@/, '')
 
-    // Try by telegram_id first, then by discord_username
     let user = null
     if (/^\d+$/.test(cleanTarget)) {
       const { data } = await supabase
@@ -73,7 +71,6 @@ async function handleStatsCommand(chatId: string, args: string) {
       `💬 Telegram chats: <b>${user.telegram_chat_count ?? 0}</b> (+${telegramPts} pts)`
     )
   } else {
-    // /stats alone — show top 10 leaderboard
     const { data: users } = await supabase
       .from('users')
       .select('discord_username, monthly_points')
@@ -110,17 +107,34 @@ export async function POST(req: Request) {
     if (!message) return NextResponse.json({ ok: true })
 
     const chatId = String(message.chat?.id ?? '')
-    if (ALLOWED_GROUP_ID && chatId !== ALLOWED_GROUP_ID) {
-      return NextResponse.json({ ok: true })
-    }
-
     const from = message.from
     if (!from || from.is_bot) return NextResponse.json({ ok: true })
 
     const telegramId = String(from.id)
     const text: string = message.text ?? ''
 
-    // Handle /stats command (admin only)
+    // /start — works in DMs and in the group
+    if (text.startsWith('/start')) {
+      await sendMessage(chatId,
+        `👋 <b>Welcome to Africa Monthly!</b>\n\n` +
+        `🏆 Compete monthly, earn points, and win rewards.\n\n` +
+        `<b>How to participate:</b>\n` +
+        `1️⃣ Sign in at <a href="https://injectiveafrica.vercel.app">injectiveafrica.vercel.app</a> with Discord\n` +
+        `2️⃣ Connect your Telegram ID on your profile\n` +
+        `3️⃣ Chat in this group to earn points (10 messages = 1 pt)\n` +
+        `4️⃣ Complete tasks on the platform for bonus points\n\n` +
+        `📊 Use /stats to see the leaderboard\n\n` +
+        `Let's go! 🚀`
+      )
+      return NextResponse.json({ ok: true })
+    }
+
+    // All other commands and messages are group-only
+    if (ALLOWED_GROUP_ID && chatId !== ALLOWED_GROUP_ID) {
+      return NextResponse.json({ ok: true })
+    }
+
+    // /stats command (admin only)
     if (text.startsWith('/stats')) {
       const isAdmin = await isGroupAdmin(chatId, telegramId)
       if (!isAdmin) {
