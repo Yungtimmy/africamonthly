@@ -22,6 +22,7 @@ interface TelegramLoginProps {
 export function TelegramLogin({ botName, onAuth, connected, connectedName }: TelegramLoginProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [widgetLoaded, setWidgetLoaded] = useState(false)
+  const [widgetFailed, setWidgetFailed] = useState(false)
 
   useEffect(() => {
     if (!ref.current || !botName || botName === 'YourBotName') return
@@ -38,12 +39,19 @@ export function TelegramLogin({ botName, onAuth, connected, connectedName }: Tel
     script.setAttribute('data-request-access', 'write')
     script.async = true
     script.onload = () => setWidgetLoaded(true)
+    script.onerror = () => setWidgetFailed(true)
     ref.current.appendChild(script)
 
+    // Fallback if widget doesn't render within 5s
+    const timeout = setTimeout(() => {
+      if (!widgetLoaded) setWidgetFailed(true)
+    }, 5000)
+
     return () => {
+      clearTimeout(timeout)
       delete (window as unknown as Record<string, unknown>).onTelegramAuth
     }
-  }, [botName, onAuth])
+  }, [botName, onAuth, widgetLoaded])
 
   const hasBotName = botName && botName !== 'YourBotName'
 
@@ -61,9 +69,8 @@ export function TelegramLogin({ botName, onAuth, connected, connectedName }: Tel
 
   return (
     <div className="space-y-2">
-      {hasBotName ? (
-        <div ref={ref} className="min-h-[44px]" />
-      ) : (
+      {hasBotName && !widgetFailed && <div ref={ref} className="min-h-[44px]" />}
+      {(!hasBotName || widgetFailed) && (
         <a
           href={`https://t.me/${botName}`}
           target="_blank"
@@ -73,12 +80,12 @@ export function TelegramLogin({ botName, onAuth, connected, connectedName }: Tel
           <MessageCircle size={18} className="text-[#00D4FF]" />
           <div className="flex-1">
             <p className="text-sm text-white font-medium">Connect Telegram</p>
-            <p className="text-xs text-white/30">Click to open the bot, then send /start</p>
+            <p className="text-xs text-white/30">Open the bot and send /start to link your account</p>
           </div>
           <span className="text-xs text-[#00D4FF] opacity-60 group-hover:opacity-100">Open →</span>
         </a>
       )}
-      {hasBotName && !widgetLoaded && (
+      {hasBotName && !widgetLoaded && !widgetFailed && (
         <p className="text-xs text-white/20 italic">Loading Telegram button...</p>
       )}
     </div>
