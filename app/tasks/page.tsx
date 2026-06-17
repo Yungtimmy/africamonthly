@@ -22,9 +22,12 @@ async function getTasksWithStatus(userId?: string): Promise<TaskWithStatus[]> {
 
   if (!tasks) return []
 
-  if (!userId) return tasks.map((t: Record<string, unknown>) => ({ ...t, submissionStatus: null }))
+  type RawTask = { id: string; title: string; description: string; points: number; task_type?: string; x_post_url?: string | null; x_actions?: string[] | null }
+  const typedTasks = tasks as RawTask[]
 
-  const taskIds = tasks.map((t: Record<string, unknown>) => t.id as string)
+  if (!userId) return typedTasks.map((t) => ({ ...t, submissionStatus: null }))
+
+  const taskIds = typedTasks.map((t) => t.id)
   const { data: submissions } = await supabase
     .from('submissions')
     .select('task_id, status')
@@ -36,10 +39,10 @@ async function getTasksWithStatus(userId?: string): Promise<TaskWithStatus[]> {
     (submissions ?? []).map((s: { task_id: string; status: string }) => [s.task_id, s.status])
   )
 
-  return tasks
-    .map((t: Record<string, unknown>) => ({
+  return typedTasks
+    .map((t) => ({
       ...t,
-      submissionStatus: submissionMap.get(t.id as string) ?? null,
+      submissionStatus: submissionMap.get(t.id) ?? null,
     }))
     .filter((t) => t.submissionStatus !== 'approved')
 }
