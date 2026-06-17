@@ -290,7 +290,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
       )}
 
       <div className="space-y-3">
-        {tasks.map((task) => {
+        {tasks.filter((t) => t.is_active !== false).map((task) => {
           const active = task.is_active ?? true
           const isXPost = task.task_type === 'x_post'
           return (
