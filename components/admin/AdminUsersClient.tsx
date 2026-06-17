@@ -19,9 +19,9 @@ interface GrantForm {
   reason: string
 }
 
-export function AdminUsersClient() {
+export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] }) {
   const [query, setQuery] = useState('')
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<User[]>(initialUsers)
   const [searching, setSearching] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [grant, setGrant] = useState<GrantForm>({ points: '', reason: '' })
@@ -155,9 +155,9 @@ export function AdminUsersClient() {
         </form>
       )}
 
-      {users.length === 0 && !searching && (
+      {users.length === 0 && !searching && query && (
         <p className="text-center text-white/20 text-sm py-8">
-          Search for a user by Discord username to grant points.
+          No users found for &quot;{query}&quot;.
         </p>
       )}
     </div>

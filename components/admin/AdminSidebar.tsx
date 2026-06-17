@@ -12,7 +12,7 @@ const adminLinks = [
   { href: '/admin/users', label: 'Users', icon: Users },
 ]
 
-export function AdminSidebar() {
+export function AdminSidebar({ userCount }: { userCount?: number }) {
   const pathname = usePathname()
   return (
     <nav className="w-52 shrink-0 space-y-1">
@@ -31,7 +31,12 @@ export function AdminSidebar() {
             )}
           >
             <Icon size={15} />
-            {label}
+            <span className="flex-1">{label}</span>
+            {label === 'Users' && userCount !== undefined && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#00D4FF]/15 text-[#00D4FF]">
+                {userCount}
+              </span>
+            )}
           </Link>
         )
       })}

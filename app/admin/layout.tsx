@@ -1,10 +1,15 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session?.user?.isAdmin) redirect('/')
+
+  const { count: userCount } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true })
 
   return (
     <div className="relative min-h-screen">
@@ -14,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex gap-8">
-          <AdminSidebar />
+          <AdminSidebar userCount={userCount ?? 0} />
           <main className="flex-1 min-w-0">{children}</main>
         </div>
       </div>
