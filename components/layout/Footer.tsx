@@ -3,13 +3,19 @@ import { Trophy, XIcon, MessageCircle } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="bg-[#111111] border-t border-[#2A2A2A] mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <footer className="bg-[#0D0D0D] border-t border-[#2A2A2A] mt-20 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-0 right-0 w-[30vw] h-[20vw] rounded-full bg-[#4B3DE8]/5 blur-[80px]" />
+        <div className="absolute top-0 left-0 w-[20vw] h-[15vw] rounded-full bg-[#D4A017]/4 blur-[80px]" />
+      </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3">
-              <Trophy className="text-[#D4A017] w-5 h-5" />
+              <div className="w-7 h-7 rounded-lg bg-[#4B3DE8]/15 border border-[#4B3DE8]/30 flex items-center justify-center">
+                <Trophy className="text-[#4B3DE8] w-4 h-4" />
+              </div>
               <span className="font-serif font-bold text-[#F5F0E8] text-lg">
                 Africa<span className="text-[#D4A017]">Monthly</span>
               </span>
@@ -21,14 +27,14 @@ export function Footer() {
               <a
                 href="https://twitter.com"
                 aria-label="Twitter"
-                className="p-2 rounded-lg text-[#A09070] hover:text-[#D4A017] hover:bg-[#1A1A1A] transition-colors"
+                className="p-2 rounded-lg text-[#A09070] hover:text-[#D4A017] hover:bg-[#D4A017]/8 transition-colors"
               >
                 <XIcon size={18} />
               </a>
               <a
                 href="https://t.me"
                 aria-label="Telegram"
-                className="p-2 rounded-lg text-[#A09070] hover:text-[#D4A017] hover:bg-[#1A1A1A] transition-colors"
+                className="p-2 rounded-lg text-[#A09070] hover:text-[#4B3DE8] hover:bg-[#4B3DE8]/10 transition-colors"
               >
                 <MessageCircle size={18} />
               </a>

@@ -23,11 +23,13 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[30] bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#2A2A2A]">
+      <nav className="sticky top-0 z-[30] bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#2A2A2A] shadow-[0_1px_40px_#4B3DE8]/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Trophy className="text-[#D4A017] w-5 h-5" />
+            <div className="w-7 h-7 rounded-lg bg-[#4B3DE8]/15 border border-[#4B3DE8]/30 flex items-center justify-center">
+              <Trophy className="text-[#4B3DE8] w-4 h-4" />
+            </div>
             <span className="font-serif font-bold text-[#F5F0E8] text-lg leading-none">
               Africa<span className="text-[#D4A017]">Monthly</span>
             </span>
@@ -43,7 +45,7 @@ export function Navbar() {
                   'px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
                   pathname === link.href
                     ? 'text-[#D4A017] bg-[#D4A017]/10'
-                    : 'text-[#A09070] hover:text-[#F5F0E8]'
+                    : 'text-[#A09070] hover:text-[#F5F0E8] hover:bg-[#4B3DE8]/8'
                 )}
               >
                 {link.label}
