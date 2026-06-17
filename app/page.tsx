@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Trophy, CheckCircle, TrendingUp, Star, ArrowRight, Zap, Users, Target } from 'lucide-react'
+import { Trophy, CheckCircle, TrendingUp, DollarSign, ArrowRight, Zap, Users, Target, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
@@ -118,9 +118,14 @@ export default async function HomePage() {
 
               <p className="mt-6 text-lg text-white/50 leading-relaxed max-w-lg">
                 The African community&apos;s monthly leaderboard powered by{' '}
-                <span className="text-[#00D4FF]/80">Injective Chain</span>. Complete tasks, chat on
-                Telegram, participate in events — top 5 win exclusive rewards every month.
-              </p>
+                <span className="text-[#00D4FF]/80">Injective Chain</span>. 
+                </p>
+                <p>
+                Complete tasks, chat on
+                Telegram, participate in events </p>
+                <p>
+                Top 5 win exclusive rewards every month.
+                </p>
 
               {/* CTAs */}
               <div className="mt-10 flex flex-wrap gap-4">
@@ -139,9 +144,9 @@ export default async function HomePage() {
               {/* Stat chips */}
               <div className="mt-12 flex flex-wrap gap-3">
                 {[
-                  { icon: <Zap className="w-4 h-4 text-[#00D4FF]" />, value: daysLeft.toString(), label: 'days left', glow: 'inj' },
+                  { icon: <Calendar className="w-4 h-4 text-[#00D4FF]" />, value: daysLeft.toString(), label: 'days left', glow: 'inj' },
                   { icon: <Trophy className="w-4 h-4 text-[#D4A017]" />, value: 'Top 5', label: 'rewarded', glow: 'gold' },
-                  { icon: <Star className="w-4 h-4 text-[#00D4FF]" fill="currentColor" />, value: '10:1', label: 'chats → pts', glow: 'inj' },
+                  { icon: <DollarSign className="w-4 h-4 text-[#00D4FF]" fill="currentColor" />, value: 'Earn', label: 'Usd', glow: 'inj' },
                 ].map((s) => (
                   <div
                     key={s.value}
@@ -192,7 +197,7 @@ export default async function HomePage() {
                 iconBg: 'bg-[#D4A017]/10 border border-[#D4A017]/20',
                 step: '02',
                 title: 'Complete Tasks',
-                desc: 'Tasks drop regularly. Submit your proof link — admin approves and points land instantly.',
+                desc: 'Tasks drop regularly. Submit your proof link, points land instantly.',
                 accentColor: '#D4A017',
                 glowClass: 'hover:shadow-[0_0_30px_rgba(212,160,23,0.08)] hover:border-[#D4A017]/30',
               },
