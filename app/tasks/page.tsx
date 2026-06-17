@@ -13,7 +13,7 @@ async function getTasksWithStatus(userId?: string) {
 
   if (!userId) return tasks.map((t: Record<string, unknown>) => ({ ...t, submissionStatus: null }))
 
-  const taskIds = tasks.map((t: Record<string, unknown>) => t.id)
+  const taskIds = tasks.map((t: Record<string, unknown>) => t.id as string)
   const { data: submissions } = await supabase
     .from('submissions')
     .select('task_id, status')
@@ -28,7 +28,7 @@ async function getTasksWithStatus(userId?: string) {
   return tasks
     .map((t: Record<string, unknown>) => ({
       ...t,
-      submissionStatus: submissionMap.get(t.id) ?? null,
+      submissionStatus: submissionMap.get(t.id as string) ?? null,
     }))
     .filter((t) => t.submissionStatus !== 'approved')
 }
