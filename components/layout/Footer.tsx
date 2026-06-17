@@ -30,14 +30,14 @@ export function Footer() {
               </p>
               <div className="flex gap-2 mt-5">
                 <a
-                  href="https://twitter.com"
+                  href="https://x.com/INJAfrica"
                   aria-label="Twitter"
                   className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-colors"
                 >
                   <XIcon size={17} />
                 </a>
                 <a
-                  href="https://t.me"
+                  href="https://t.me/INJECTIVEAFRICAN"
                   aria-label="Telegram"
                   className="p-2 rounded-lg text-white/30 hover:text-[#00D4FF] hover:bg-[#00D4FF]/8 transition-colors"
                 >
