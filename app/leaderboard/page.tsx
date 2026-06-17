@@ -17,7 +17,7 @@ async function getLeaderboard() {
   }
 }
 
-export const revalidate = 60
+export const revalidate = 0
 
 export default async function LeaderboardPage() {
   const users = await getLeaderboard()

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { supabase } from '@/lib/supabase'
@@ -17,6 +18,9 @@ export async function POST() {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  revalidatePath('/leaderboard')
+  revalidatePath('/admin')
 
   return NextResponse.json({ ok: true })
 }
