@@ -10,7 +10,7 @@ async function getLeaderboard() {
       .select('id, discord_username, discord_avatar, monthly_points, total_points')
       .order('monthly_points', { ascending: false })
       .order('total_points', { ascending: false })
-      .limit(50)
+      .limit(70)
     return data ?? []
   } catch {
     return []
