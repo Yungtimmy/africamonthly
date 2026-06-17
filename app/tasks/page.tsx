@@ -25,10 +25,12 @@ async function getTasksWithStatus(userId?: string) {
     (submissions ?? []).map((s: { task_id: string; status: string }) => [s.task_id, s.status])
   )
 
-  return tasks.map((t: Record<string, unknown>) => ({
-    ...t,
-    submissionStatus: submissionMap.get(t.id) ?? null,
-  }))
+  return tasks
+    .map((t: Record<string, unknown>) => ({
+      ...t,
+      submissionStatus: submissionMap.get(t.id) ?? null,
+    }))
+    .filter((t) => t.submissionStatus !== 'approved')
 }
 
 export default async function TasksPage() {
