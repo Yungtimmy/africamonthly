@@ -30,7 +30,7 @@ export function TaskList({ tasks, isLoggedIn }: TaskListProps) {
     return (
       <div className="text-center py-20 text-[#A09070]">
         <p className="font-serif text-xl text-[#F5F0E8] mb-2">No tasks yet</p>
-        <p className="text-sm">Check back soon — new tasks are posted regularly.</p>
+        <p className="text-sm">Check back soon</p>
       </div>
     )
   }
