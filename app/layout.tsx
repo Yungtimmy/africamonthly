@@ -35,7 +35,7 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} dark`}>
-      <body className="min-h-screen flex flex-col bg-[#0A0A0A] text-[#F5F0E8] antialiased">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-[#0A0A0A] text-[#F5F0E8] antialiased">
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>
