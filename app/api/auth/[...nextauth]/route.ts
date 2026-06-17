@@ -40,6 +40,14 @@ export const authOptions: NextAuthOptions = {
       return true
     },
 
+    async redirect({ url, baseUrl }) {
+      // After sign-in, always go to /tasks
+      if (url === baseUrl || url === `${baseUrl}/`) return `${baseUrl}/tasks`
+      // Allow relative redirects within the app
+      if (url.startsWith(baseUrl)) return url
+      return `${baseUrl}/tasks`
+    },
+
     async session({ session, token }) {
       if (token?.discordId) {
         try {
