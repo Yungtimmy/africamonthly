@@ -1,37 +1,108 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, ToggleLeft, ToggleRight, Trash2, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
 interface Task {
-  _id: { toString(): string }
+  id?: string
+  _id?: { toString(): string }
   title: string
   description: string
   points: number
-  isActive: boolean
+  is_active?: boolean
+  isActive?: boolean
+  task_type?: string
+  x_post_url?: string | null
+  x_action?: string | null
+}
+
+type XAction = 'like' | 'reply' | 'retweet' | 'quote'
+
+const X_ACTION_POINTS: Record<XAction, number> = { like: 20, reply: 30, retweet: 50, quote: 50 }
+const X_ACTIONS: XAction[] = ['like', 'reply', 'retweet', 'quote']
+
+function getTaskId(task: Task): string {
+  return task.id ?? task._id?.toString() ?? ''
+}
+
+function isTaskActive(task: Task): boolean {
+  return task.is_active ?? task.isActive ?? false
+}
+
+function OEmbedPreview({ url }: { url: string }) {
+  const [html, setHtml] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!url) { setHtml(null); return }
+    const timer = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`
+        )
+        if (res.ok) {
+          const data = await res.json() as { html: string }
+          setHtml(data.html)
+        } else {
+          setHtml(null)
+        }
+      } catch {
+        setHtml(null)
+      } finally {
+        setLoading(false)
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [url])
+
+  if (!url) return null
+  if (loading) return <p className="text-xs text-white/30 italic">Loading preview...</p>
+  if (!html) return <p className="text-xs text-red-400/70">Could not load preview for this URL.</p>
+  return (
+    <div
+      className="rounded-xl overflow-hidden bg-black/30 border border-white/10 p-3 text-sm"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
 }
 
 export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState(initialTasks)
   const [showForm, setShowForm] = useState(false)
+  const [taskType, setTaskType] = useState<'x_post' | 'other_event'>('other_event')
   const [form, setForm] = useState({ title: '', description: '', points: '' })
+  const [xUrl, setXUrl] = useState('')
+  const [xAction, setXAction] = useState<XAction | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  function resetForm() {
+    setForm({ title: '', description: '', points: '' })
+    setXUrl('')
+    setXAction(null)
+    setTaskType('other_event')
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
+      const body =
+        taskType === 'x_post'
+          ? { task_type: 'x_post', x_post_url: xUrl, x_action: xAction }
+          : { task_type: 'other_event', ...form }
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       })
       if (res.ok) {
-        const task = await res.json()
+        const task = await res.json() as Task
         setTasks((prev) => [task, ...prev])
-        setForm({ title: '', description: '', points: '' })
+        resetForm()
         setShowForm(false)
       }
     } finally {
@@ -39,15 +110,19 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     }
   }
 
-  async function handleToggle(id: string, isActive: boolean) {
+  async function handleToggle(id: string, currentActive: boolean) {
     const res = await fetch(`/api/tasks/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !isActive }),
+      body: JSON.stringify({ isActive: !currentActive }),
     })
     if (res.ok) {
       setTasks((prev) =>
-        prev.map((t) => (t._id.toString() === id ? { ...t, isActive: !isActive } : t))
+        prev.map((t) =>
+          getTaskId(t) === id
+            ? { ...t, is_active: !currentActive, isActive: !currentActive }
+            : t
+        )
       )
     }
   }
@@ -55,14 +130,17 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   async function handleDelete(id: string) {
     if (!confirm('Delete this task?')) return
     const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-    if (res.ok) setTasks((prev) => prev.filter((t) => t._id.toString() !== id))
+    if (res.ok) setTasks((prev) => prev.filter((t) => getTaskId(t) !== id))
   }
+
+  const inputClass =
+    'w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#00D4FF]/50 focus:outline-none'
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <p className="text-[#A09070] text-sm">{tasks.length} tasks total</p>
-        <Button size="sm" onClick={() => setShowForm((v) => !v)}>
+        <Button size="sm" onClick={() => { resetForm(); setShowForm((v) => !v) }}>
           <Plus size={16} /> Add Task
         </Button>
       </div>
@@ -70,45 +148,144 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
       {showForm && (
         <form
           onSubmit={handleCreate}
-          className="bg-[#111111] border border-[#D4A017]/30 rounded-2xl p-6 space-y-4"
+          className="bg-white/3 border border-white/8 rounded-2xl p-6 space-y-5 backdrop-blur-sm"
         >
-          <h3 className="font-serif text-lg font-semibold text-[#F5F0E8]">New Task</h3>
-          {[
-            { id: 'title', label: 'Title', placeholder: 'e.g. Follow us on X', key: 'title' as const },
-            { id: 'desc', label: 'Description', placeholder: 'What the user needs to do', key: 'description' as const },
-            { id: 'points', label: 'Points', placeholder: '50', key: 'points' as const },
-          ].map(({ id, label, placeholder, key }) => (
-            <div key={id}>
-              <label htmlFor={id} className="block text-sm text-[#A09070] mb-1.5">{label}</label>
-              {key === 'description' ? (
+          <h3 className="font-serif text-lg font-semibold text-white">New Task</h3>
+
+          {/* Task type selector */}
+          <div>
+            <label className="block text-sm text-[#A09070] mb-2">Task Type</label>
+            <div className="flex gap-2">
+              {(['other_event', 'x_post'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setTaskType(type)}
+                  className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all ${
+                    taskType === type
+                      ? type === 'x_post'
+                        ? 'bg-[#00D4FF]/10 border-[#00D4FF]/50 text-[#00D4FF]'
+                        : 'bg-[#D4A017]/10 border-[#D4A017]/50 text-[#D4A017]'
+                      : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                  }`}
+                >
+                  {type === 'x_post' ? '𝕏 X Post' : 'Other Event'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {taskType === 'x_post' ? (
+            <>
+              {/* X Post URL */}
+              <div>
+                <label htmlFor="xurl" className="block text-sm text-[#A09070] mb-1.5">Post URL</label>
+                <input
+                  id="xurl"
+                  type="url"
+                  value={xUrl}
+                  onChange={(e) => setXUrl(e.target.value)}
+                  placeholder="https://x.com/user/status/..."
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              {/* oEmbed preview */}
+              {xUrl && (
+                <div>
+                  <p className="text-xs text-[#A09070] mb-2">Preview</p>
+                  <OEmbedPreview url={xUrl} />
+                </div>
+              )}
+
+              {/* Action selector */}
+              <div>
+                <label className="block text-sm text-[#A09070] mb-2">Required Action</label>
+                <div className="flex flex-wrap gap-2">
+                  {X_ACTIONS.map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      onClick={() => setXAction(action)}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all capitalize ${
+                        xAction === action
+                          ? 'bg-[#00D4FF]/15 border-[#00D4FF]/50 text-[#00D4FF]'
+                          : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                      }`}
+                    >
+                      {action}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Auto points display */}
+              {xAction && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#D4A017]/8 border border-[#D4A017]/20">
+                  <Zap size={14} className="text-[#D4A017]" />
+                  <span className="text-sm text-[#D4A017] font-semibold">
+                    Points: +{X_ACTION_POINTS[xAction]} (preset for {xAction})
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div>
+                <label htmlFor="title" className="block text-sm text-[#A09070] mb-1.5">Title</label>
+                <input
+                  id="title"
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="e.g. Share our post"
+                  required
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="desc" className="block text-sm text-[#A09070] mb-1.5">Description</label>
                 <textarea
-                  id={id}
-                  value={form[key]}
-                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  placeholder={placeholder}
+                  id="desc"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="What the user needs to do"
                   rows={3}
                   required
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none resize-none"
+                  className={`${inputClass} resize-none`}
                 />
-              ) : (
+              </div>
+              <div>
+                <label htmlFor="points" className="block text-sm text-[#A09070] mb-1.5">Points</label>
                 <input
-                  id={id}
-                  type={key === 'points' ? 'number' : 'text'}
-                  value={form[key]}
-                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  placeholder={placeholder}
-                  min={key === 'points' ? 1 : undefined}
+                  id="points"
+                  type="number"
+                  value={form.points}
+                  onChange={(e) => setForm((f) => ({ ...f, points: e.target.value }))}
+                  placeholder="50"
+                  min={1}
                   required
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none"
+                  className={inputClass}
                 />
-              )}
-            </div>
-          ))}
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(false)}>
+              </div>
+            </>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => { setShowForm(false); resetForm() }}
+            >
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={submitting}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={submitting || (taskType === 'x_post' && (!xUrl || !xAction))}
+            >
               {submitting ? 'Creating...' : 'Create Task'}
             </Button>
           </div>
@@ -117,29 +294,41 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
 
       <div className="space-y-3">
         {tasks.map((task) => {
-          const id = task._id.toString()
+          const id = getTaskId(task)
+          const active = isTaskActive(task)
+          const isXPost = task.task_type === 'x_post'
           return (
             <div
               key={id}
-              className={`bg-[#111111] border rounded-xl p-5 flex items-start gap-4 ${
-                task.isActive ? 'border-[#2A2A2A]' : 'border-[#2A2A2A] opacity-50'
+              className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
+                active ? 'border-white/8' : 'border-white/5 opacity-50'
               }`}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-medium text-[#F5F0E8]">{task.title}</h3>
+                  {isXPost && <span className="font-bold text-white">𝕏</span>}
+                  <h3 className="font-medium text-white">
+                    {isXPost ? (task.x_post_url ?? task.title) : task.title}
+                  </h3>
                   <Badge variant="points">+{task.points}</Badge>
-                  {!task.isActive && <Badge>Inactive</Badge>}
+                  {isXPost && task.x_action && (
+                    <span className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
+                      {task.x_action}
+                    </span>
+                  )}
+                  {!active && <Badge>Inactive</Badge>}
                 </div>
-                <p className="text-sm text-[#A09070] mt-1">{task.description}</p>
+                {!isXPost && task.description && (
+                  <p className="text-sm text-[#A09070] mt-1">{task.description}</p>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => handleToggle(id, task.isActive)}
-                  aria-label={task.isActive ? 'Deactivate' : 'Activate'}
+                  onClick={() => handleToggle(id, active)}
+                  aria-label={active ? 'Deactivate' : 'Activate'}
                   className="p-1.5 text-[#A09070] hover:text-[#D4A017] transition-colors cursor-pointer"
                 >
-                  {task.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                  {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                 </button>
                 <button
                   onClick={() => handleDelete(id)}
