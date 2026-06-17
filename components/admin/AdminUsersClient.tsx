@@ -114,8 +114,8 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
               <p className="text-[#D4A017] font-bold">{formatPoints(user.monthly_points)} pts</p>
               <p className="text-white/30 text-xs">{formatPoints(user.total_points)} total</p>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/20 text-xs font-semibold text-[#D4A017] opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-              <Zap size={12} /> Grant Points
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/20 text-xs font-semibold text-[#D4A017] opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              <Zap size={12} /> <span className="hidden sm:inline">Grant Points</span>
             </div>
           </div>
         ))}
@@ -128,7 +128,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0D1525] border border-white/10 p-7 shadow-2xl">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#0D1525] border border-white/10 p-5 sm:p-7 shadow-2xl">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/50 to-transparent" />
 
             {/* Header */}

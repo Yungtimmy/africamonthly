@@ -49,8 +49,8 @@ export default async function HomePage() {
           }} />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
             {/* LEFT — Logo with cosmic rings */}
             <div className="hidden lg:flex items-center justify-center">
@@ -165,18 +165,18 @@ export default async function HomePage() {
       </section>
 
       {/* ── HOW IT WORKS ───────────────────────────────────────── */}
-      <section className="py-28 relative overflow-hidden">
+      <section className="py-16 sm:py-28 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute right-0 top-0 w-[40vw] h-[40vw] rounded-full bg-[#00D4FF]/4 blur-[100px]" />
         </div>
         {/* Section divider */}
         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/20 to-transparent mb-24" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-16 text-center">
+          <div className="mb-10 sm:mb-16 text-center">
             <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
               <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">How It Works</span>
             </div>
-            <h2 className="font-serif text-4xl font-bold text-white mb-3">Three steps to the top</h2>
+            <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white mb-3">Three steps to the top</h2>
             <p className="text-white/40 max-w-md mx-auto">Join the competition, earn points across multiple activities, and claim your reward.</p>
           </div>
 
@@ -212,7 +212,7 @@ export default async function HomePage() {
             ].map((item) => (
               <div
                 key={item.step}
-                className={`relative rounded-2xl p-8 transition-all duration-300 cursor-default overflow-hidden ${item.glowClass} bg-white/3 border border-white/6 backdrop-blur-sm hover:-translate-y-1`}
+                className={`relative rounded-2xl p-5 sm:p-8 transition-all duration-300 cursor-default overflow-hidden ${item.glowClass} bg-white/3 border border-white/6 backdrop-blur-sm hover:-translate-y-1`}
               >
                 {/* Top glow line */}
                 <div
@@ -237,19 +237,19 @@ export default async function HomePage() {
 
       {/* ── MINI LEADERBOARD ───────────────────────────────────── */}
       {topUsers.length > 0 && (
-        <section className="py-28 relative overflow-hidden">
+        <section className="py-16 sm:py-28 relative overflow-hidden">
           <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/20 to-transparent mb-24" />
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute bottom-0 left-0 w-[35vw] h-[35vw] rounded-full bg-[#D4A017]/4 blur-[100px]" />
           </div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center justify-between gap-4 mb-8 sm:mb-12">
               <div>
                 <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
                   <Users className="w-3.5 h-3.5 text-[#D4A017]" />
                   <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Live Rankings</span>
                 </div>
-                <h2 className="font-serif text-4xl font-bold text-white">{monthLabel}</h2>
+                <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white">{monthLabel}</h2>
                 <p className="text-white/40 mt-1">Current standings — {daysLeft} days remaining</p>
               </div>
               <Link href="/leaderboard">
@@ -291,7 +291,7 @@ export default async function HomePage() {
       )}
 
       {/* ── CTA ────────────────────────────────────────────────── */}
-      <section className="py-28 relative overflow-hidden">
+      <section className="py-16 sm:py-28 relative overflow-hidden">
         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/20 to-transparent mb-24" />
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.06)_0%,transparent_70%)]" />
@@ -301,7 +301,7 @@ export default async function HomePage() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
             <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">Resets Monthly</span>
           </div>
-          <h2 className="font-serif text-5xl font-bold text-white mb-5 leading-tight">
+          <h2 className="font-serif text-3xl sm:text-5xl font-bold text-white mb-5 leading-tight">
             Ready to{' '}
             <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #00D4FF, #D4A017)' }}>
               compete?

@@ -79,32 +79,32 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
         <div className="absolute bottom-0 left-0 w-[30vw] h-[30vw] rounded-full bg-[#D4A017]/3 blur-[100px]" />
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 space-y-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-6 sm:space-y-8">
         {/* Profile header */}
-        <div className="relative rounded-2xl p-8 overflow-hidden bg-white/3 border border-white/8 backdrop-blur-sm">
+        <div className="relative rounded-2xl p-5 sm:p-8 overflow-hidden bg-white/3 border border-white/8 backdrop-blur-sm">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/50 to-transparent" />
-          <div className="flex items-center gap-5">
-            <div className="relative">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <div className="relative shrink-0">
               <Avatar src={user.discordAvatar} name={user.discordUsername} size="lg" />
               <div className="absolute inset-0 rounded-full ring-2 ring-[#00D4FF]/20 animate-pulse" />
             </div>
-            <div>
-              <h1 className="font-serif text-3xl font-bold text-white">{user.discordUsername}</h1>
+            <div className="min-w-0">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white truncate">{user.discordUsername}</h1>
               <p className="text-white/40 text-sm mt-1">Rank <span className="text-[#00D4FF]">#{rank}</span> this month</p>
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           {[
             { label: 'Monthly pts', value: formatPoints(user.monthlyPoints), icon: <TrendingUp className="w-4 h-4 text-[#00D4FF]" />, color: 'text-[#00D4FF]' },
             { label: 'All-time pts', value: formatPoints(user.totalPoints), icon: <Trophy className="w-4 h-4 text-[#D4A017]" />, color: 'text-[#D4A017]' },
             { label: 'Current rank', value: `#${rank}`, icon: <Hash className="w-4 h-4 text-[#00D4FF]" />, color: 'text-[#00D4FF]' },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-2xl p-5 text-center bg-white/3 border border-white/8 backdrop-blur-sm">
+            <div key={stat.label} className="rounded-2xl p-3 sm:p-5 text-center bg-white/3 border border-white/8 backdrop-blur-sm">
               <div className="flex justify-center mb-2">{stat.icon}</div>
-              <p className={`font-serif font-bold text-2xl ${stat.color}`}>{stat.value}</p>
+              <p className={`font-serif font-bold text-lg sm:text-2xl ${stat.color}`}>{stat.value}</p>
               <p className="text-xs text-white/30 mt-1">{stat.label}</p>
             </div>
           ))}

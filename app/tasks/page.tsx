@@ -59,12 +59,12 @@ export default async function TasksPage() {
         <div className="absolute top-0 right-0 w-[45vw] h-[45vw] rounded-full bg-[#00D4FF]/5 blur-[130px]" />
         <div className="absolute bottom-0 left-0 w-[30vw] h-[30vw] rounded-full bg-[#D4A017]/4 blur-[100px]" />
       </div>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
-        <div className="mb-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <div className="mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
             <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">Monthly Tasks</span>
           </div>
-          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-3">Earn Points</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3">Earn Points</h1>
           <p className="text-white/40">Complete tasks to earn points.</p>
         </div>
         <TaskList tasks={tasks} isLoggedIn={!!session?.user} />

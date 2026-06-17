@@ -50,29 +50,29 @@ export default async function LeaderboardPage() {
         <div className="absolute top-40 right-0 w-[30vw] h-[30vw] rounded-full bg-[#D4A017]/4 blur-[100px]" />
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16">
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Header */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-10 sm:mb-20">
           <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
             <Trophy className="w-3.5 h-3.5 text-[#D4A017]" />
             <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Monthly Rankings</span>
           </div>
-          <h1 className="font-serif text-5xl sm:text-6xl font-bold text-white mb-3">{monthLabel}</h1>
-          <p className="text-white/40 text-lg">
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-3">{monthLabel}</h1>
+          <p className="text-white/40 text-base sm:text-lg">
             {daysLeft} days remaining &middot; Top 5 earn rewards
           </p>
         </div>
 
         {/* Podium */}
         {top3.length > 0 && (
-          <div className="flex items-end justify-center gap-4 mb-20">
+          <div className="flex items-end justify-center gap-2 sm:gap-4 mb-10 sm:mb-20">
             {podiumOrder.map((idx) => {
               const user = top3[idx]
               if (!user) return null
               const cfg = podiumConfig[idx]
               const rank = idx + 1
               return (
-                <div key={user.id} className="flex flex-col items-center gap-3 flex-1 max-w-[160px]">
+                <div key={user.id} className="flex flex-col items-center gap-2 sm:gap-3 flex-1 max-w-[100px] sm:max-w-[160px]">
                   <Crown size={22} className={cfg.crown} fill="currentColor" style={{ filter: `drop-shadow(0 0 8px ${cfg.glow})` }} />
                   <div className="relative">
                     <Avatar src={user.discord_avatar} name={user.discord_username} size="lg" />
@@ -105,7 +105,7 @@ export default async function LeaderboardPage() {
             return (
               <div
                 key={u.id}
-                className={`flex items-center gap-4 rounded-2xl px-5 py-4 border transition-all duration-200 backdrop-blur-sm ${c.bg} ${c.hover}`}
+                className={`flex items-center gap-2 sm:gap-4 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 border transition-all duration-200 backdrop-blur-sm ${c.bg} ${c.hover}`}
               >
                 <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
                 <span className={`font-serif font-bold text-lg w-6 text-center ${rank <= 3 ? c.pt : 'text-white/25'}`}>{rank}</span>

@@ -135,7 +135,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
                 size="sm"
                 disabled={isProcessing}
                 onClick={() => handleReview(sub.id, 'reject')}
-                className="flex items-center gap-2"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <XCircle size={16} /> Reject
               </Button>
@@ -143,7 +143,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
                 size="sm"
                 disabled={isProcessing}
                 onClick={() => handleReview(sub.id, 'approve')}
-                className="flex items-center gap-2 !bg-emerald-700 hover:!bg-emerald-600"
+                className="flex-1 flex items-center justify-center gap-2 !bg-emerald-700 hover:!bg-emerald-600"
               >
                 <CheckCircle size={16} /> {isProcessing ? 'Processing...' : 'Approve'}
               </Button>
