@@ -1,27 +1,21 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(req: Request) {
   const session = await auth()
-  if (!session?.user?.isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  if (!session?.user?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { searchParams } = new URL(req.url)
-  const q = searchParams.get('q')
+  const q = searchParams.get('q') ?? ''
 
-  await connectDB()
-  const query = q
-    ? { discordUsername: { $regex: q, $options: 'i' } }
-    : {}
-
-  const users = await User.find(query)
-    .sort({ monthlyPoints: -1 })
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, discord_username, discord_avatar, monthly_points, total_points')
+    .ilike('discord_username', `%${q}%`)
+    .order('monthly_points', { ascending: false })
     .limit(20)
-    .select('discordUsername discordAvatar totalPoints monthlyPoints')
-    .lean()
 
-  return NextResponse.json(users)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 
 export async function PATCH(req: Request) {
   const session = await auth()
@@ -9,17 +8,11 @@ export async function PATCH(req: Request) {
 
   const { telegram, twitter, wallet } = await req.json()
 
-  await connectDB()
-  await User.findOneAndUpdate(
-    { discordId: session.user.discordId },
-    {
-      $set: {
-        'telegram.username': telegram?.replace(/^@/, '') || undefined,
-        twitter: twitter?.replace(/^@/, '') || undefined,
-        walletAddress: wallet || undefined,
-      },
-    }
-  )
+  await supabase.from('users').update({
+    telegram_username: telegram?.replace(/^@/, '') || null,
+    twitter: twitter?.replace(/^@/, '') || null,
+    wallet_address: wallet || null,
+  }).eq('id', session.user.id)
 
   return NextResponse.json({ success: true })
 }

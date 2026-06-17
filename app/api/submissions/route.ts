@@ -1,36 +1,35 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { connectDB } from '@/lib/db'
-import { Submission } from '@/lib/models/Submission'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  await connectDB()
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
 
   if (session.user.isAdmin) {
-    const query = status ? { status } : {}
-    const submissions = await Submission.find(query)
-      .populate('userId', 'discordUsername discordAvatar')
-      .populate('taskId', 'title points')
-      .sort({ createdAt: -1 })
-      .lean()
-    return NextResponse.json(submissions)
+    let query = supabase
+      .from('submissions')
+      .select('*, users(discord_username, discord_avatar), tasks(title, points)')
+      .order('created_at', { ascending: false })
+
+    if (status) query = query.eq('status', status)
+    const { data, error } = await query
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
   }
 
-  // Regular users see only their own
-  const user = await User.findOne({ discordId: session.user.discordId }).lean()
-  if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  // Regular user — own submissions only
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*, tasks(title, points)')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false })
 
-  const submissions = await Submission.find({ userId: (user as { _id: unknown })._id })
-    .populate('taskId', 'title points')
-    .sort({ createdAt: -1 })
-    .lean()
-  return NextResponse.json(submissions)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
 }
 
 export async function POST(req: Request) {
@@ -38,27 +37,29 @@ export async function POST(req: Request) {
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { taskId, proofUrl } = await req.json()
-  if (!taskId || !proofUrl) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
-  }
+  if (!taskId || !proofUrl) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-  // Validate URL
   try { new URL(proofUrl) } catch {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
-  await connectDB()
-  const user = await User.findOne({ discordId: session.user.discordId }).lean()
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  // Prevent duplicate non-rejected submissions
+  const { data: existing } = await supabase
+    .from('submissions')
+    .select('id')
+    .eq('user_id', session.user.id)
+    .eq('task_id', taskId)
+    .neq('status', 'rejected')
+    .single()
 
-  const userId = (user as { _id: unknown })._id
+  if (existing) return NextResponse.json({ error: 'Already submitted' }, { status: 409 })
 
-  // Prevent duplicate submissions
-  const existing = await Submission.findOne({ userId, taskId, status: { $ne: 'rejected' } })
-  if (existing) {
-    return NextResponse.json({ error: 'Already submitted' }, { status: 409 })
-  }
+  const { data, error } = await supabase
+    .from('submissions')
+    .insert({ user_id: session.user.id, task_id: taskId, proof_url: proofUrl })
+    .select()
+    .single()
 
-  const submission = await Submission.create({ userId, taskId, proofUrl })
-  return NextResponse.json(submission, { status: 201 })
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data, { status: 201 })
 }

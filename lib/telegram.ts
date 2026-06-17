@@ -1,31 +1,56 @@
-import { connectDB } from '@/lib/db'
-import { TelegramEvent } from '@/lib/models/TelegramEvent'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 
 export async function processTelegramMessage(telegramUsername: string) {
-  await connectDB()
+  // Upsert telegram_events row
+  const { data: existing } = await supabase
+    .from('telegram_events')
+    .select('*')
+    .eq('telegram_username', telegramUsername)
+    .single()
 
-  const event = await TelegramEvent.findOneAndUpdate(
-    { telegramUsername },
-    { $inc: { messageCount: 1 }, syncedAt: new Date() },
-    { upsert: true, new: true }
-  )
+  let messageCount: number
+  let previousPointsAwarded: number
 
-  const totalMessages = event.messageCount
-  const newPointsTotal = Math.floor(totalMessages / 10)
-  const previousPoints = event.pointsAwarded
+  if (existing) {
+    messageCount = existing.message_count + 1
+    previousPointsAwarded = existing.points_awarded
 
-  if (newPointsTotal > previousPoints) {
-    const delta = newPointsTotal - previousPoints
+    await supabase.from('telegram_events').update({
+      message_count: messageCount,
+      synced_at: new Date().toISOString(),
+    }).eq('telegram_username', telegramUsername)
+  } else {
+    messageCount = 1
+    previousPointsAwarded = 0
 
-    await TelegramEvent.updateOne({ telegramUsername }, { $set: { pointsAwarded: newPointsTotal } })
+    await supabase.from('telegram_events').insert({
+      telegram_username: telegramUsername,
+      message_count: 1,
+      points_awarded: 0,
+    })
+  }
 
-    await User.updateOne(
-      { 'telegram.username': telegramUsername },
-      {
-        $inc: { totalPoints: delta, monthlyPoints: delta },
-        $set: { 'telegram.chatCount': totalMessages },
-      }
-    )
+  const newPointsTotal = Math.floor(messageCount / 10)
+
+  if (newPointsTotal > previousPointsAwarded) {
+    const delta = newPointsTotal - previousPointsAwarded
+
+    await supabase.from('telegram_events').update({
+      points_awarded: newPointsTotal,
+    }).eq('telegram_username', telegramUsername)
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, total_points, monthly_points')
+      .eq('telegram_username', telegramUsername)
+      .single()
+
+    if (user) {
+      await supabase.from('users').update({
+        total_points: user.total_points + delta,
+        monthly_points: user.monthly_points + delta,
+        telegram_chat_count: messageCount,
+      }).eq('id', user.id)
+    }
   }
 }

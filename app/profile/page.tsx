@@ -1,51 +1,60 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
-import { Submission } from '@/lib/models/Submission'
+import { supabase } from '@/lib/supabase'
 import { ProfileClient } from '@/components/profile/ProfileClient'
 
-async function getUserData(discordId: string) {
-  await connectDB()
-  const user = await User.findOne({ discordId }).lean()
+async function getUserData(userId: string) {
+  const { data: user } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single()
+
   if (!user) return null
 
-  const u = user as {
-    _id: { toString(): string }
-    discordUsername: string
-    discordAvatar?: string
-    telegram?: { username: string; chatCount: number }
-    twitter?: string
-    walletAddress?: string
-    totalPoints: number
-    monthlyPoints: number
-  }
-
-  const submissions = await Submission.find({ userId: u._id })
-    .populate('taskId', 'title points')
-    .sort({ createdAt: -1 })
+  const { data: submissions } = await supabase
+    .from('submissions')
+    .select('*, tasks(title, points)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
     .limit(20)
-    .lean()
 
-  const rank = await User.countDocuments({ monthlyPoints: { $gt: u.monthlyPoints } })
+  const { count } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .gt('monthly_points', user.monthly_points)
 
-  return { user: u, submissions, rank: rank + 1 }
+  return {
+    user: {
+      _id: { toString: () => user.id },
+      discordUsername: user.discord_username,
+      discordAvatar: user.discord_avatar,
+      telegram: user.telegram_username
+        ? { username: user.telegram_username, chatCount: user.telegram_chat_count }
+        : undefined,
+      twitter: user.twitter,
+      walletAddress: user.wallet_address,
+      totalPoints: user.total_points,
+      monthlyPoints: user.monthly_points,
+    },
+    submissions: (submissions ?? []).map((s) => ({
+      _id: { toString: () => s.id },
+      proofUrl: s.proof_url,
+      status: s.status,
+      pointsAwarded: s.points_awarded,
+      createdAt: s.created_at,
+      taskId: s.tasks ? { title: s.tasks.title, points: s.tasks.points } : null,
+    })),
+    rank: (count ?? 0) + 1,
+  }
 }
 
 export default async function ProfilePage() {
   const session = await auth()
-  if (!session?.user) redirect('/')
+  if (!session?.user?.id) redirect('/')
 
-  const data = await getUserData(session.user.discordId)
+  const data = await getUserData(session.user.id)
   if (!data) redirect('/')
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-      <ProfileClient
-        user={data.user}
-        submissions={data.submissions}
-        rank={data.rank}
-      />
-    </div>
-  )
+  return <ProfileClient user={data.user} submissions={data.submissions} rank={data.rank} />
 }

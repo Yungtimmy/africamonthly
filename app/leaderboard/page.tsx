@@ -1,17 +1,17 @@
 import { Crown, Trophy } from 'lucide-react'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/Avatar'
 import { getDaysUntilEndOfMonth, getCurrentMonthLabel, formatPoints } from '@/lib/utils'
 
 async function getLeaderboard() {
   try {
-    await connectDB()
-    return await User.find()
-      .sort({ monthlyPoints: -1, totalPoints: -1 })
+    const { data } = await supabase
+      .from('users')
+      .select('id, discord_username, discord_avatar, monthly_points, total_points')
+      .order('monthly_points', { ascending: false })
+      .order('total_points', { ascending: false })
       .limit(50)
-      .select('discordUsername discordAvatar monthlyPoints totalPoints')
-      .lean()
+    return data ?? []
   } catch {
     return []
   }
@@ -67,27 +67,22 @@ export default async function LeaderboardPage() {
         {top3.length > 0 && (
           <div className="flex items-end justify-center gap-4 mb-20">
             {podiumOrder.map((idx) => {
-              const user = top3[idx] as {
-                _id: { toString(): string }
-                discordUsername: string
-                discordAvatar?: string
-                monthlyPoints: number
-              } | undefined
+              const user = top3[idx]
               if (!user) return null
               const cfg = podiumConfig[idx]
               const rank = idx + 1
               return (
-                <div key={user._id.toString()} className="flex flex-col items-center gap-3 flex-1 max-w-[160px]">
+                <div key={user.id} className="flex flex-col items-center gap-3 flex-1 max-w-[160px]">
                   <Crown size={22} className={cfg.crown} fill="currentColor" style={{ filter: `drop-shadow(0 0 8px ${cfg.glow})` }} />
                   <div className="relative">
-                    <Avatar src={user.discordAvatar} name={user.discordUsername} size="lg" />
+                    <Avatar src={user.discord_avatar} name={user.discord_username} size="lg" />
                     {rank === 1 && (
                       <div className="absolute inset-0 rounded-full animate-pulse" style={{ boxShadow: `0 0 20px ${cfg.glow}` }} />
                     )}
                   </div>
                   <div className="text-center">
-                    <p className="font-medium text-white text-sm truncate max-w-[120px]">{user.discordUsername}</p>
-                    <p className="font-serif font-bold text-sm mt-0.5" style={{ color: cfg.rank }}>{formatPoints(user.monthlyPoints)}</p>
+                    <p className="font-medium text-white text-sm truncate max-w-[120px]">{user.discord_username}</p>
+                    <p className="font-serif font-bold text-sm mt-0.5" style={{ color: cfg.rank }}>{formatPoints(user.monthly_points)}</p>
                   </div>
                   {/* Podium block */}
                   <div
@@ -104,28 +99,21 @@ export default async function LeaderboardPage() {
 
         {/* Full table */}
         <div className="space-y-2">
-          {users.map((user, i) => {
-            const u = user as {
-              _id: { toString(): string }
-              discordUsername: string
-              discordAvatar?: string
-              monthlyPoints: number
-              totalPoints: number
-            }
+          {users.map((u, i) => {
             const rank = i + 1
             const c = rowConfig[i] ?? rowConfig[3]
             return (
               <div
-                key={u._id.toString()}
+                key={u.id}
                 className={`flex items-center gap-4 rounded-2xl px-5 py-4 border transition-all duration-200 backdrop-blur-sm ${c.bg} ${c.hover}`}
               >
                 <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
                 <span className={`font-serif font-bold text-lg w-6 text-center ${rank <= 3 ? c.pt : 'text-white/25'}`}>{rank}</span>
-                <Avatar src={u.discordAvatar} name={u.discordUsername} size="sm" />
-                <span className="flex-1 font-medium text-white/80 truncate">{u.discordUsername}</span>
+                <Avatar src={u.discord_avatar} name={u.discord_username} size="sm" />
+                <span className="flex-1 font-medium text-white/80 truncate">{u.discord_username}</span>
                 <div className="text-right">
-                  <span className={`font-serif font-bold text-lg ${c.pt}`}>{formatPoints(u.monthlyPoints)}</span>
-                  <p className="text-xs text-white/20">{formatPoints(u.totalPoints)} total</p>
+                  <span className={`font-serif font-bold text-lg ${c.pt}`}>{formatPoints(u.monthly_points)}</span>
+                  <p className="text-xs text-white/20">{formatPoints(u.total_points)} total</p>
                 </div>
               </div>
             )

@@ -1,52 +1,65 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { connectDB } from '@/lib/db'
-import { Submission } from '@/lib/models/Submission'
-import { Task } from '@/lib/models/Task'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
-  if (!session?.user?.isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  if (!session?.user?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
-  const { action } = await req.json() // 'approve' | 'reject'
+  const { action } = await req.json()
 
   if (!['approve', 'reject'].includes(action)) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
-  await connectDB()
-  const submission = await Submission.findById(id).populate('taskId')
-  if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (submission.status !== 'pending') {
-    return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
-  }
+  const { data: submission } = await supabase
+    .from('submissions')
+    .select('*, tasks(points)')
+    .eq('id', id)
+    .single()
 
-  const adminUser = await User.findOne({ discordId: session.user.discordId }).lean()
-  if (!adminUser) return NextResponse.json({ error: 'Admin not found' }, { status: 404 })
+  if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (submission.status !== 'pending') return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
+
+  const { data: adminUser } = await supabase
+    .from('users')
+    .select('id')
+    .eq('discord_id', session.user.discordId)
+    .single()
+
+  const now = new Date().toISOString()
 
   if (action === 'approve') {
-    const task = await Task.findById(submission.taskId)
-    const points = task?.points ?? 0
+    const points = submission.tasks?.points ?? 0
 
-    submission.status = 'approved'
-    submission.pointsAwarded = points
-    submission.reviewedBy = (adminUser as { _id: unknown })._id as typeof submission.reviewedBy
-    submission.reviewedAt = new Date()
-    await submission.save()
+    await supabase.from('submissions').update({
+      status: 'approved',
+      points_awarded: points,
+      reviewed_by: adminUser?.id,
+      reviewed_at: now,
+    }).eq('id', id)
 
-    await User.findByIdAndUpdate(submission.userId, {
-      $inc: { totalPoints: points, monthlyPoints: points },
-    })
+    // Increment user points
+    const { data: user } = await supabase
+      .from('users')
+      .select('total_points, monthly_points')
+      .eq('id', submission.user_id)
+      .single()
+
+    if (user) {
+      await supabase.from('users').update({
+        total_points: user.total_points + points,
+        monthly_points: user.monthly_points + points,
+      }).eq('id', submission.user_id)
+    }
   } else {
-    submission.status = 'rejected'
-    submission.reviewedBy = (adminUser as { _id: unknown })._id as typeof submission.reviewedBy
-    submission.reviewedAt = new Date()
-    await submission.save()
+    await supabase.from('submissions').update({
+      status: 'rejected',
+      reviewed_by: adminUser?.id,
+      reviewed_at: now,
+    }).eq('id', id)
   }
 
-  return NextResponse.json(submission)
+  return NextResponse.json({ success: true })
 }

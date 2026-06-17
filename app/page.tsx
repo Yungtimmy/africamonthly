@@ -2,19 +2,18 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Trophy, CheckCircle, TrendingUp, DollarSign, ArrowRight, Zap, Users, Target, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/Avatar'
 import { getDaysUntilEndOfMonth, getCurrentMonthLabel, formatPoints } from '@/lib/utils'
 
 async function getTopUsers() {
   try {
-    await connectDB()
-    return await User.find()
-      .sort({ monthlyPoints: -1 })
+    const { data } = await supabase
+      .from('users')
+      .select('id, discord_username, discord_avatar, monthly_points')
+      .order('monthly_points', { ascending: false })
       .limit(5)
-      .select('discordUsername discordAvatar monthlyPoints')
-      .lean()
+    return data ?? []
   } catch {
     return []
   }
@@ -261,13 +260,7 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-3 max-w-2xl">
-              {topUsers.map((user, i) => {
-                const u = user as {
-                  _id: { toString(): string }
-                  discordUsername: string
-                  discordAvatar?: string
-                  monthlyPoints: number
-                }
+              {topUsers.map((u, i) => {
                 const configs = [
                   { bar: 'bg-[#D4A017]', border: 'border-[#D4A017]/25', rank: 'text-[#D4A017]', glow: 'hover:shadow-[0_0_20px_rgba(212,160,23,0.1)]' },
                   { bar: 'bg-[#00D4FF]', border: 'border-[#00D4FF]/20', rank: 'text-[#00D4FF]', glow: 'hover:shadow-[0_0_20px_rgba(0,212,255,0.1)]' },
@@ -278,15 +271,15 @@ export default async function HomePage() {
                 const c = configs[i] ?? configs[3]
                 return (
                   <div
-                    key={u._id.toString()}
+                    key={u.id}
                     className={`flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-200 bg-white/3 border backdrop-blur-sm ${c.border} ${c.glow}`}
                   >
                     <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
                     <span className={`font-serif font-bold text-xl w-5 ${c.rank}`}>{i + 1}</span>
-                    <Avatar src={u.discordAvatar} name={u.discordUsername} size="sm" />
-                    <span className="flex-1 font-medium text-white/80 truncate">{u.discordUsername}</span>
+                    <Avatar src={u.discord_avatar} name={u.discord_username} size="sm" />
+                    <span className="flex-1 font-medium text-white/80 truncate">{u.discord_username}</span>
                     <span className={`font-serif font-bold text-lg ${i === 0 ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>
-                      {formatPoints(u.monthlyPoints)}
+                      {formatPoints(u.monthly_points)}
                     </span>
                     <span className="text-xs text-white/20">pts</span>
                   </div>

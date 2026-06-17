@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
+import { supabase } from '@/lib/supabase'
 import type { NextAuthOptions } from 'next-auth'
 
-const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').filter(Boolean)
+const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map((s) => s.trim()).filter(Boolean)
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,8 +16,6 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider !== 'discord') return false
 
-      await connectDB()
-
       const discordProfile = profile as {
         id: string
         username: string
@@ -29,18 +26,15 @@ export const authOptions: NextAuthOptions = {
       const discordId = discordProfile.id
       const isAdmin = adminIds.includes(discordId)
 
-      await User.findOneAndUpdate(
-        { discordId },
+      await supabase.from('users').upsert(
         {
-          $set: {
-            discordId,
-            discordUsername: discordProfile.global_name || discordProfile.username,
-            discordAvatar: user.image,
-            discordEmail: user.email,
-            isAdmin,
-          },
+          discord_id: discordId,
+          discord_username: discordProfile.global_name || discordProfile.username,
+          discord_avatar: user.image,
+          discord_email: user.email,
+          is_admin: isAdmin,
         },
-        { upsert: true, new: true }
+        { onConflict: 'discord_id' }
       )
 
       return true
@@ -49,23 +43,21 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token?.discordId) {
         try {
-          await connectDB()
-          const dbUser = await User.findOne({ discordId: token.discordId }).lean()
+          const { data: dbUser } = await supabase
+            .from('users')
+            .select('id, is_admin, total_points, monthly_points')
+            .eq('discord_id', token.discordId)
+            .single()
+
           if (dbUser) {
-            const u = dbUser as {
-              _id: { toString(): string }
-              isAdmin: boolean
-              totalPoints: number
-              monthlyPoints: number
-            }
-            session.user.id = u._id.toString()
+            session.user.id = dbUser.id
             session.user.discordId = token.discordId as string
-            session.user.isAdmin = u.isAdmin
-            session.user.totalPoints = u.totalPoints
-            session.user.monthlyPoints = u.monthlyPoints
+            session.user.isAdmin = dbUser.is_admin
+            session.user.totalPoints = dbUser.total_points
+            session.user.monthlyPoints = dbUser.monthly_points
           }
         } catch {
-          // DB unavailable — session still works without extra fields
+          // session still works without extra fields
         }
       }
       return session
@@ -78,9 +70,7 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
-  pages: {
-    signIn: '/',
-  },
+  pages: { signIn: '/' },
 }
 
 const handler = NextAuth(authOptions)
