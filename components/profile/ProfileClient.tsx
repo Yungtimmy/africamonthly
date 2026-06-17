@@ -5,7 +5,9 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatPoints, formatRelativeTime } from '@/lib/utils'
-import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash, Info } from 'lucide-react'
+import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash } from 'lucide-react'
+import { KeplrConnect } from './KeplrConnect'
+import { TelegramLogin } from './TelegramLogin'
 
 interface Submission {
   id: string
@@ -36,6 +38,8 @@ const inputClass = 'w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3
 
 export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
   const [telegramId, setTelegramId] = useState(user.telegramId ?? '')
+  const [telegramConnected, setTelegramConnected] = useState(!!user.telegramId)
+  const [telegramName, setTelegramName] = useState<string | undefined>(undefined)
   const [twitter, setTwitter] = useState(user.twitter ?? '')
   const [wallet, setWallet] = useState(user.walletAddress ?? '')
   const [saving, setSaving] = useState(false)
@@ -45,10 +49,6 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (telegramId && !/^\d+$/.test(telegramId)) {
-      setError('Telegram ID must be a number. Message @userinfobot on Telegram to get your ID.')
-      return
-    }
     setSaving(true)
     try {
       const res = await fetch('/api/profile', {
@@ -139,21 +139,26 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
-                <MessageCircle size={13} /> Telegram ID
+                <MessageCircle size={13} /> Telegram
               </label>
-              <input
-                type="text"
-                value={telegramId}
-                onChange={(e) => setTelegramId(e.target.value)}
-                placeholder="e.g. 123456789"
-                className={inputClass}
+              <TelegramLogin
+                botName={process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME ?? 'YourBotName'}
+                connected={telegramConnected}
+                connectedName={telegramName}
+                onAuth={async (tgUser) => {
+                  const res = await fetch('/api/telegram/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tgUser),
+                  })
+                  if (res.ok) {
+                    const data = await res.json()
+                    setTelegramId(data.telegramId)
+                    setTelegramConnected(true)
+                    setTelegramName(data.displayName)
+                  }
+                }}
               />
-              <div className="flex items-start gap-1.5 mt-1.5">
-                <Info size={11} className="text-white/20 mt-0.5 shrink-0" />
-                <p className="text-xs text-white/25">
-                  Message <span className="text-[#00D4FF]">@userinfobot</span> on Telegram to get your numeric ID
-                </p>
-              </div>
             </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
@@ -165,7 +170,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
                 <Wallet size={13} /> Wallet address
               </label>
-              <input type="text" value={wallet} onChange={(e) => setWallet(e.target.value)} placeholder="inj1..." className={`${inputClass} font-mono`} />
+              <KeplrConnect currentAddress={wallet} onConnect={(addr) => setWallet(addr)} />
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
             <Button type="submit" disabled={saving} variant={saved ? 'outline' : 'primary'} size="sm">
