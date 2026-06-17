@@ -1,22 +1,24 @@
-import { connectDB } from '@/lib/db'
-import { User } from '@/lib/models/User'
-import { Submission } from '@/lib/models/Submission'
-import { Task } from '@/lib/models/Task'
+import { supabase } from '@/lib/supabase'
 import { Users, Clock, ListTodo, Zap } from 'lucide-react'
 
 async function getStats() {
-  await connectDB()
-  const [totalUsers, pendingSubmissions, activeTasks, totalPointsResult] = await Promise.all([
-    User.countDocuments(),
-    Submission.countDocuments({ status: 'pending' }),
-    Task.countDocuments({ isActive: true }),
-    User.aggregate([{ $group: { _id: null, total: { $sum: '$monthlyPoints' } } }]),
+  const [
+    { count: totalUsers },
+    { count: pendingSubmissions },
+    { count: activeTasks },
+    { data: pointsData },
+  ] = await Promise.all([
+    supabase.from('users').select('*', { count: 'exact', head: true }),
+    supabase.from('submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('users').select('monthly_points'),
   ])
+  const totalMonthlyPoints = (pointsData ?? []).reduce((sum, u) => sum + (u.monthly_points ?? 0), 0)
   return {
-    totalUsers,
-    pendingSubmissions,
-    activeTasks,
-    totalMonthlyPoints: totalPointsResult[0]?.total ?? 0,
+    totalUsers: totalUsers ?? 0,
+    pendingSubmissions: pendingSubmissions ?? 0,
+    activeTasks: activeTasks ?? 0,
+    totalMonthlyPoints,
   }
 }
 
