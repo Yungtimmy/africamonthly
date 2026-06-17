@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Trophy, CheckCircle, TrendingUp, Star, ArrowRight, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { connectDB } from '@/lib/db'
@@ -50,20 +51,20 @@ export default async function HomePage() {
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-            {/* LEFT HALF — reserved for logo animation */}
+            {/* LEFT HALF — logo */}
             <div className="hidden lg:flex items-center justify-center min-h-[420px]">
-              {/* Logo animation placeholder — user will wire this up */}
               <div className="relative w-[340px] h-[340px] flex items-center justify-center">
-                {/* Pulsing rings behind the logo */}
+                {/* Pulsing rings */}
                 <div className="absolute inset-0 rounded-full border border-[#4B3DE8]/20 animate-ping" style={{ animationDuration: '3s' }} />
                 <div className="absolute inset-[15%] rounded-full border border-[#D4A017]/15 animate-ping" style={{ animationDuration: '4s', animationDelay: '1s' }} />
-                {/* Inner placeholder circle */}
-                <div className="w-52 h-52 rounded-full bg-[#4B3DE8]/10 border border-[#4B3DE8]/20 flex items-center justify-center backdrop-blur-sm">
-                  <div className="text-center">
-                    <Trophy className="w-14 h-14 text-[#4B3DE8] mx-auto mb-2 opacity-60" />
-                    <p className="text-xs text-[#5A5040] tracking-widest uppercase">Logo here</p>
-                  </div>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="Africa Monthly"
+                  width={260}
+                  height={260}
+                  className="relative z-10 drop-shadow-[0_0_40px_rgba(75,61,232,0.4)]"
+                  priority
+                />
               </div>
             </div>
 

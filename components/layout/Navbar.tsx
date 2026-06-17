@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signIn, signOut, useSession } from 'next-auth/react'
-import { Menu, X, Trophy, LogOut, User as UserIcon } from 'lucide-react'
+import { Menu, X, LogOut, User as UserIcon } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -27,9 +28,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-[#4B3DE8]/15 border border-[#4B3DE8]/30 flex items-center justify-center">
-              <Trophy className="text-[#4B3DE8] w-4 h-4" />
-            </div>
+            <Image src="/logo.png" alt="Africa Monthly" width={32} height={32} className="rounded-md" />
             <span className="font-serif font-bold text-[#F5F0E8] text-lg leading-none">
               Africa<span className="text-[#D4A017]">Monthly</span>
             </span>
