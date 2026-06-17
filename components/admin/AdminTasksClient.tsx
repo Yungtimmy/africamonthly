@@ -6,30 +6,25 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
 interface Task {
-  id?: string
-  _id?: { toString(): string }
+  id: string
   title: string
   description: string
   points: number
   is_active?: boolean
-  isActive?: boolean
   task_type?: string
   x_post_url?: string | null
-  x_action?: string | null
+  x_actions?: string[] | null
 }
 
 type XAction = 'like' | 'reply' | 'retweet' | 'quote'
 
 const X_ACTION_POINTS: Record<XAction, number> = { like: 20, reply: 30, retweet: 50, quote: 50 }
-const X_ACTIONS: XAction[] = ['like', 'reply', 'retweet', 'quote']
-
-function getTaskId(task: Task): string {
-  return task.id ?? task._id?.toString() ?? ''
-}
-
-function isTaskActive(task: Task): boolean {
-  return task.is_active ?? task.isActive ?? false
-}
+const X_ACTIONS: { value: XAction; label: string; pts: number }[] = [
+  { value: 'like', label: 'Like', pts: 20 },
+  { value: 'reply', label: 'Reply', pts: 30 },
+  { value: 'retweet', label: 'Retweet', pts: 50 },
+  { value: 'quote', label: 'Quote', pts: 50 },
+]
 
 function OEmbedPreview({ url }: { url: string }) {
   const [html, setHtml] = useState<string | null>(null)
@@ -75,15 +70,23 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [taskType, setTaskType] = useState<'x_post' | 'other_event'>('other_event')
   const [form, setForm] = useState({ title: '', description: '', points: '' })
   const [xUrl, setXUrl] = useState('')
-  const [xAction, setXAction] = useState<XAction | null>(null)
+  const [xActions, setXActions] = useState<XAction[]>([])
   const [submitting, setSubmitting] = useState(false)
 
   function resetForm() {
     setForm({ title: '', description: '', points: '' })
     setXUrl('')
-    setXAction(null)
+    setXActions([])
     setTaskType('other_event')
   }
+
+  function toggleAction(action: XAction) {
+    setXActions((prev) =>
+      prev.includes(action) ? prev.filter((a) => a !== action) : [...prev, action]
+    )
+  }
+
+  const totalPoints = xActions.reduce((sum, a) => sum + X_ACTION_POINTS[a], 0)
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -91,7 +94,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     try {
       const body =
         taskType === 'x_post'
-          ? { task_type: 'x_post', x_post_url: xUrl, x_action: xAction }
+          ? { task_type: 'x_post', x_post_url: xUrl, x_actions: xActions }
           : { task_type: 'other_event', ...form }
 
       const res = await fetch('/api/tasks', {
@@ -118,11 +121,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     })
     if (res.ok) {
       setTasks((prev) =>
-        prev.map((t) =>
-          getTaskId(t) === id
-            ? { ...t, is_active: !currentActive, isActive: !currentActive }
-            : t
-        )
+        prev.map((t) => t.id === id ? { ...t, is_active: !currentActive } : t)
       )
     }
   }
@@ -130,16 +129,16 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   async function handleDelete(id: string) {
     if (!confirm('Delete this task?')) return
     const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-    if (res.ok) setTasks((prev) => prev.filter((t) => getTaskId(t) !== id))
+    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
   const inputClass =
-    'w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#00D4FF]/50 focus:outline-none'
+    'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <p className="text-[#A09070] text-sm">{tasks.length} tasks total</p>
+        <p className="text-white/30 text-sm">{tasks.length} tasks total</p>
         <Button size="sm" onClick={() => { resetForm(); setShowForm((v) => !v) }}>
           <Plus size={16} /> Add Task
         </Button>
@@ -152,9 +151,9 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
         >
           <h3 className="font-serif text-lg font-semibold text-white">New Task</h3>
 
-          {/* Task type selector */}
+          {/* Task type toggle */}
           <div>
-            <label className="block text-sm text-[#A09070] mb-2">Task Type</label>
+            <label className="block text-sm text-white/40 mb-2">Task Type</label>
             <div className="flex gap-2">
               {(['other_event', 'x_post'] as const).map((type) => (
                 <button
@@ -177,9 +176,8 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
 
           {taskType === 'x_post' ? (
             <>
-              {/* X Post URL */}
               <div>
-                <label htmlFor="xurl" className="block text-sm text-[#A09070] mb-1.5">Post URL</label>
+                <label htmlFor="xurl" className="block text-sm text-white/40 mb-1.5">Post URL</label>
                 <input
                   id="xurl"
                   type="url"
@@ -191,41 +189,45 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                 />
               </div>
 
-              {/* oEmbed preview */}
               {xUrl && (
                 <div>
-                  <p className="text-xs text-[#A09070] mb-2">Preview</p>
+                  <p className="text-xs text-white/30 mb-2">Preview</p>
                   <OEmbedPreview url={xUrl} />
                 </div>
               )}
 
-              {/* Action selector */}
+              {/* Multi-action checkboxes */}
               <div>
-                <label className="block text-sm text-[#A09070] mb-2">Required Action</label>
-                <div className="flex flex-wrap gap-2">
-                  {X_ACTIONS.map((action) => (
-                    <button
-                      key={action}
-                      type="button"
-                      onClick={() => setXAction(action)}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all capitalize ${
-                        xAction === action
-                          ? 'bg-[#00D4FF]/15 border-[#00D4FF]/50 text-[#00D4FF]'
-                          : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
-                      }`}
-                    >
-                      {action}
-                    </button>
-                  ))}
+                <label className="block text-sm text-white/40 mb-2">
+                  Required Actions <span className="text-white/20">(select all that apply)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {X_ACTIONS.map(({ value, label, pts }) => {
+                    const selected = xActions.includes(value)
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => toggleAction(value)}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold border transition-all ${
+                          selected
+                            ? 'bg-[#00D4FF]/15 border-[#00D4FF]/50 text-[#00D4FF]'
+                            : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                        }`}
+                      >
+                        <span>{label}</span>
+                        <span className={`text-xs ${selected ? 'text-[#D4A017]' : 'text-white/20'}`}>+{pts}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              {/* Auto points display */}
-              {xAction && (
+              {xActions.length > 0 && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#D4A017]/8 border border-[#D4A017]/20">
                   <Zap size={14} className="text-[#D4A017]" />
                   <span className="text-sm text-[#D4A017] font-semibold">
-                    Points: +{X_ACTION_POINTS[xAction]} (preset for {xAction})
+                    Total points: +{totalPoints} ({xActions.join(' + ')})
                   </span>
                 </div>
               )}
@@ -233,7 +235,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           ) : (
             <>
               <div>
-                <label htmlFor="title" className="block text-sm text-[#A09070] mb-1.5">Title</label>
+                <label htmlFor="title" className="block text-sm text-white/40 mb-1.5">Title</label>
                 <input
                   id="title"
                   type="text"
@@ -245,7 +247,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                 />
               </div>
               <div>
-                <label htmlFor="desc" className="block text-sm text-[#A09070] mb-1.5">Description</label>
+                <label htmlFor="desc" className="block text-sm text-white/40 mb-1.5">Description</label>
                 <textarea
                   id="desc"
                   value={form.description}
@@ -257,7 +259,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                 />
               </div>
               <div>
-                <label htmlFor="points" className="block text-sm text-[#A09070] mb-1.5">Points</label>
+                <label htmlFor="points" className="block text-sm text-white/40 mb-1.5">Points</label>
                 <input
                   id="points"
                   type="number"
@@ -273,18 +275,13 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           )}
 
           <div className="flex gap-3 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => { setShowForm(false); resetForm() }}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={() => { setShowForm(false); resetForm() }}>
               Cancel
             </Button>
             <Button
               type="submit"
               size="sm"
-              disabled={submitting || (taskType === 'x_post' && (!xUrl || !xAction))}
+              disabled={submitting || (taskType === 'x_post' && (!xUrl || xActions.length === 0))}
             >
               {submitting ? 'Creating...' : 'Create Task'}
             </Button>
@@ -294,12 +291,11 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
 
       <div className="space-y-3">
         {tasks.map((task) => {
-          const id = getTaskId(task)
-          const active = isTaskActive(task)
+          const active = task.is_active ?? true
           const isXPost = task.task_type === 'x_post'
           return (
             <div
-              key={id}
+              key={task.id}
               className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
                 active ? 'border-white/8' : 'border-white/5 opacity-50'
               }`}
@@ -307,33 +303,31 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {isXPost && <span className="font-bold text-white">𝕏</span>}
-                  <h3 className="font-medium text-white">
+                  <h3 className="font-medium text-white truncate">
                     {isXPost ? (task.x_post_url ?? task.title) : task.title}
                   </h3>
                   <Badge variant="points">+{task.points}</Badge>
-                  {isXPost && task.x_action && (
-                    <span className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                      {task.x_action}
+                  {isXPost && task.x_actions && task.x_actions.map((a) => (
+                    <span key={a} className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
+                      {a}
                     </span>
-                  )}
+                  ))}
                   {!active && <Badge>Inactive</Badge>}
                 </div>
                 {!isXPost && task.description && (
-                  <p className="text-sm text-[#A09070] mt-1">{task.description}</p>
+                  <p className="text-sm text-white/30 mt-1">{task.description}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => handleToggle(id, active)}
-                  aria-label={active ? 'Deactivate' : 'Activate'}
-                  className="p-1.5 text-[#A09070] hover:text-[#D4A017] transition-colors cursor-pointer"
+                  onClick={() => handleToggle(task.id, active)}
+                  className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
                 >
                   {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                 </button>
                 <button
-                  onClick={() => handleDelete(id)}
-                  aria-label="Delete task"
-                  className="p-1.5 text-[#A09070] hover:text-red-400 transition-colors cursor-pointer"
+                  onClick={() => handleDelete(task.id)}
+                  className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -342,7 +336,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           )
         })}
         {tasks.length === 0 && (
-          <p className="text-center text-[#5A5040] py-8 text-sm">No tasks yet. Create one above.</p>
+          <p className="text-center text-white/20 py-8 text-sm">No tasks yet. Create one above.</p>
         )}
       </div>
     </div>

@@ -5,10 +5,13 @@ import { TaskCard } from './TaskCard'
 import { SubmissionModal } from './SubmissionModal'
 
 interface Task {
-  _id: { toString(): string }
+  id: string
   title: string
   description: string
   points: number
+  task_type?: string
+  x_post_url?: string | null
+  x_actions?: string[] | null
   submissionStatus: string | null
 }
 
@@ -39,7 +42,7 @@ export function TaskList({ tasks, isLoggedIn }: TaskListProps) {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {tasks.map((task) => {
-          const taskId = task._id.toString()
+          const taskId = task.id
           const status = completedTaskIds.has(taskId) ? 'pending' : task.submissionStatus
           return (
             <TaskCard
@@ -57,7 +60,7 @@ export function TaskList({ tasks, isLoggedIn }: TaskListProps) {
         <SubmissionModal
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
-          onSubmitted={() => handleSubmitted(selectedTask._id.toString())}
+          onSubmitted={() => handleSubmitted(selectedTask.id)}
         />
       )}
     </>

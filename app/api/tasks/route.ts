@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { title, description, points, task_type, x_post_url, x_action } = await req.json()
+  const { title, description, points, task_type, x_post_url, x_actions } = await req.json()
 
   const resolvedTaskType: string = task_type ?? 'other_event'
 
@@ -28,10 +28,15 @@ export async function POST(req: Request) {
     if (!x_post_url) {
       return NextResponse.json({ error: 'x_post_url is required for x_post tasks' }, { status: 400 })
     }
-    if (!x_action || !(x_action in X_ACTION_POINTS)) {
-      return NextResponse.json({ error: 'Invalid x_action' }, { status: 400 })
+    if (!x_actions || !Array.isArray(x_actions) || x_actions.length === 0) {
+      return NextResponse.json({ error: 'At least one action is required for X post tasks' }, { status: 400 })
     }
-    resolvedPoints = X_ACTION_POINTS[x_action]
+    const invalid = x_actions.filter((a: string) => !(a in X_ACTION_POINTS))
+    if (invalid.length > 0) {
+      return NextResponse.json({ error: `Invalid actions: ${invalid.join(', ')}` }, { status: 400 })
+    }
+    // Points = sum of all selected actions
+    resolvedPoints = x_actions.reduce((sum: number, a: string) => sum + X_ACTION_POINTS[a], 0)
   } else {
     if (!title || !description || !points) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -54,7 +59,7 @@ export async function POST(req: Request) {
   }
   if (resolvedTaskType === 'x_post') {
     insertPayload.x_post_url = x_post_url
-    insertPayload.x_action = x_action
+    insertPayload.x_actions = x_actions
   }
 
   const { data, error } = await supabase

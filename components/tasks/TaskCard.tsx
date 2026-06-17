@@ -5,14 +5,13 @@ import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
   task: {
-    id?: string
-    _id?: { toString(): string }
+    id: string
     title: string
     description: string
     points: number
     task_type?: string
     x_post_url?: string | null
-    x_action?: string | null
+    x_actions?: string[] | null
   }
   submissionStatus: string | null
   isLoggedIn: boolean
@@ -38,10 +37,10 @@ const statusConfig = {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  like: 'Like this post',
-  reply: 'Reply to this post',
-  retweet: 'Retweet this post',
-  quote: 'Quote this post',
+  like: 'Like',
+  reply: 'Reply',
+  retweet: 'Retweet',
+  quote: 'Quote',
 }
 
 export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskCardProps) {
@@ -58,7 +57,6 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
           : 'bg-white/3 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/5 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(0,212,255,0.06)]'
       )}
     >
-      {/* Top line glow */}
       {!isDone && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       )}
@@ -76,10 +74,17 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
             </div>
           </div>
 
-          {task.x_action && (
-            <p className="text-sm font-semibold text-[#00D4FF]">
-              {ACTION_LABELS[task.x_action] ?? task.x_action}
-            </p>
+          {task.x_actions && task.x_actions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {task.x_actions.map((action) => (
+                <span
+                  key={action}
+                  className="px-2.5 py-1 rounded-lg bg-[#00D4FF]/10 border border-[#00D4FF]/20 text-xs font-semibold text-[#00D4FF]"
+                >
+                  {ACTION_LABELS[action] ?? action}
+                </span>
+              ))}
+            </div>
           )}
 
           {task.x_post_url && (
