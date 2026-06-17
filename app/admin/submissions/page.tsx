@@ -4,7 +4,7 @@ import { SubmissionsClient } from '@/components/admin/SubmissionsClient'
 async function getSubmissions() {
   const { data } = await supabase
     .from('submissions')
-    .select('*, users(discord_username, discord_avatar), tasks(title, points)')
+    .select('*, users!submissions_user_id_fkey(discord_username, discord_avatar), tasks!submissions_task_id_fkey(title, points, task_type, x_post_url, x_actions)')
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
   return data ?? []

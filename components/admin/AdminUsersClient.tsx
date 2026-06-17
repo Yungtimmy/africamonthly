@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/Button'
 import { formatPoints } from '@/lib/utils'
 
 interface User {
-  _id: { toString(): string }
-  discordUsername: string
-  discordAvatar?: string
-  totalPoints: number
-  monthlyPoints: number
+  id: string
+  discord_username: string
+  discord_avatar?: string
+  total_points: number
+  monthly_points: number
 }
 
 interface GrantForm {
@@ -33,7 +33,7 @@ export function AdminUsersClient() {
     try {
       const res = await fetch(`/api/users?q=${encodeURIComponent(query)}`)
       const data = await res.json()
-      setUsers(data)
+      setUsers(Array.isArray(data) ? data : [])
     } finally {
       setSearching(false)
     }
@@ -44,13 +44,13 @@ export function AdminUsersClient() {
     if (!selectedUser) return
     setGranting(true)
     try {
-      const res = await fetch(`/api/users/${selectedUser._id.toString()}/points`, {
+      const res = await fetch(`/api/users/${selectedUser.id}/points`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ points: Number(grant.points), reason: grant.reason }),
       })
       if (res.ok) {
-        setGrantSuccess(`${grant.points} points granted to ${selectedUser.discordUsername}`)
+        setGrantSuccess(`${grant.points} points granted to ${selectedUser.discord_username}`)
         setGrant({ points: '', reason: '' })
         setSelectedUser(null)
         setTimeout(() => setGrantSuccess(null), 4000)
@@ -60,6 +60,8 @@ export function AdminUsersClient() {
     }
   }
 
+  const inputClass = 'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
+
   return (
     <div className="space-y-6">
       {grantSuccess && (
@@ -68,17 +70,16 @@ export function AdminUsersClient() {
         </div>
       )}
 
-      {/* Search */}
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5A5040]" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search by Discord username..."
-            className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg pl-9 pr-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none"
+            className="w-full bg-white/3 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all"
           />
         </div>
         <Button size="sm" onClick={handleSearch} disabled={searching}>
@@ -86,46 +87,42 @@ export function AdminUsersClient() {
         </Button>
       </div>
 
-      {/* User list */}
       {users.length > 0 && (
         <div className="space-y-2">
           {users.map((user) => (
             <div
-              key={user._id.toString()}
-              className={`flex items-center gap-4 bg-[#111111] border rounded-xl px-5 py-4 cursor-pointer transition-colors ${
-                selectedUser?._id.toString() === user._id.toString()
+              key={user.id}
+              className={`flex items-center gap-4 bg-white/3 border rounded-xl px-5 py-4 cursor-pointer transition-all ${
+                selectedUser?.id === user.id
                   ? 'border-[#D4A017]/50 bg-[#D4A017]/5'
-                  : 'border-[#2A2A2A] hover:border-[#D4A017]/30'
+                  : 'border-white/8 hover:border-[#D4A017]/30'
               }`}
-              onClick={() => setSelectedUser(selectedUser?._id.toString() === user._id.toString() ? null : user)}
+              onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
             >
-              <Avatar src={user.discordAvatar} name={user.discordUsername} size="sm" />
-              <span className="flex-1 font-medium text-[#F5F0E8]">{user.discordUsername}</span>
+              <Avatar src={user.discord_avatar} name={user.discord_username} size="sm" />
+              <span className="flex-1 font-medium text-white">{user.discord_username}</span>
               <div className="text-right text-sm">
-                <p className="text-[#D4A017] font-bold">{formatPoints(user.monthlyPoints)} pts</p>
-                <p className="text-[#5A5040] text-xs">{formatPoints(user.totalPoints)} total</p>
+                <p className="text-[#D4A017] font-bold">{formatPoints(user.monthly_points)} pts</p>
+                <p className="text-white/30 text-xs">{formatPoints(user.total_points)} total</p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Grant form */}
       {selectedUser && (
         <form
           onSubmit={handleGrant}
-          className="bg-[#111111] border border-[#D4A017]/30 rounded-2xl p-6 space-y-4"
+          className="bg-white/3 border border-[#D4A017]/30 rounded-2xl p-6 space-y-4 backdrop-blur-sm"
         >
           <div className="flex items-center gap-3">
-            <Avatar src={selectedUser.discordAvatar} name={selectedUser.discordUsername} size="sm" />
-            <h3 className="font-serif text-lg font-semibold text-[#F5F0E8]">
-              Grant Points to {selectedUser.discordUsername}
+            <Avatar src={selectedUser.discord_avatar} name={selectedUser.discord_username} size="sm" />
+            <h3 className="font-serif text-lg font-semibold text-white">
+              Grant Points to {selectedUser.discord_username}
             </h3>
           </div>
           <div>
-            <label htmlFor="grant-points" className="block text-sm text-[#A09070] mb-1.5">
-              Points to grant
-            </label>
+            <label htmlFor="grant-points" className="block text-sm text-white/40 mb-1.5">Points to grant</label>
             <input
               id="grant-points"
               type="number"
@@ -134,13 +131,11 @@ export function AdminUsersClient() {
               placeholder="50"
               min={1}
               required
-              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none"
+              className={inputClass}
             />
           </div>
           <div>
-            <label htmlFor="grant-reason" className="block text-sm text-[#A09070] mb-1.5">
-              Reason
-            </label>
+            <label htmlFor="grant-reason" className="block text-sm text-white/40 mb-1.5">Reason</label>
             <input
               id="grant-reason"
               type="text"
@@ -148,13 +143,11 @@ export function AdminUsersClient() {
               onChange={(e) => setGrant((f) => ({ ...f, reason: e.target.value }))}
               placeholder="e.g. Twitter Space participation"
               required
-              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none"
+              className={inputClass}
             />
           </div>
           <div className="flex gap-3">
-            <Button type="button" variant="outline" size="sm" onClick={() => setSelectedUser(null)}>
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setSelectedUser(null)}>Cancel</Button>
             <Button type="submit" size="sm" disabled={granting}>
               {granting ? 'Granting...' : 'Grant Points'}
             </Button>
@@ -163,7 +156,7 @@ export function AdminUsersClient() {
       )}
 
       {users.length === 0 && !searching && (
-        <p className="text-center text-[#5A5040] text-sm py-8">
+        <p className="text-center text-white/20 text-sm py-8">
           Search for a user by Discord username to grant points.
         </p>
       )}
