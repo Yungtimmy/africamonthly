@@ -5,10 +5,14 @@ import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
   task: {
-    _id: { toString(): string }
+    id?: string
+    _id?: { toString(): string }
     title: string
     description: string
     points: number
+    task_type?: string
+    x_post_url?: string | null
+    x_action?: string | null
   }
   submissionStatus: string | null
   isLoggedIn: boolean
@@ -33,9 +37,17 @@ const statusConfig = {
   },
 }
 
+const ACTION_LABELS: Record<string, string> = {
+  like: 'Like this post',
+  reply: 'Reply to this post',
+  retweet: 'Retweet this post',
+  quote: 'Quote this post',
+}
+
 export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskCardProps) {
   const status = submissionStatus as keyof typeof statusConfig | null
   const isDone = status === 'approved'
+  const isXPost = task.task_type === 'x_post'
 
   return (
     <article
@@ -51,17 +63,51 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       )}
 
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="font-serif text-lg font-semibold text-white leading-snug flex-1">
-          {task.title}
-        </h3>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/25 shrink-0">
-          <Zap size={11} className="text-[#D4A017]" />
-          <span className="text-xs font-bold text-[#D4A017]">+{task.points}</span>
-        </div>
-      </div>
+      {isXPost ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold text-lg leading-none">𝕏</span>
+              <span className="text-white/60 text-sm font-medium">X / Twitter Task</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/25 shrink-0">
+              <Zap size={11} className="text-[#D4A017]" />
+              <span className="text-xs font-bold text-[#D4A017]">+{task.points}</span>
+            </div>
+          </div>
 
-      <p className="text-sm text-white/40 leading-relaxed flex-1">{task.description}</p>
+          {task.x_action && (
+            <p className="text-sm font-semibold text-[#00D4FF]">
+              {ACTION_LABELS[task.x_action] ?? task.x_action}
+            </p>
+          )}
+
+          {task.x_post_url && (
+            <a
+              href={task.x_post_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black border border-white/10 text-white text-sm font-medium hover:bg-white/5 transition-colors w-fit"
+            >
+              <span className="font-bold">𝕏</span>
+              View Post
+            </a>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="font-serif text-lg font-semibold text-white leading-snug flex-1">
+              {task.title}
+            </h3>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/25 shrink-0">
+              <Zap size={11} className="text-[#D4A017]" />
+              <span className="text-xs font-bold text-[#D4A017]">+{task.points}</span>
+            </div>
+          </div>
+          <p className="text-sm text-white/40 leading-relaxed flex-1">{task.description}</p>
+        </>
+      )}
 
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         {status ? (
