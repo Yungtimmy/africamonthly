@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -41,10 +42,27 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
   const [telegramConnected, setTelegramConnected] = useState(!!user.telegramId)
   const [telegramName, setTelegramName] = useState<string | undefined>(undefined)
   const [twitter, setTwitter] = useState(user.twitter ?? '')
+  const [twitterConnected, setTwitterConnected] = useState(!!user.twitter)
   const [wallet, setWallet] = useState(user.walletAddress ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (searchParams.get('twitter') === 'connected') {
+      setTwitterConnected(true)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+      router.replace('/profile')
+    }
+    if (searchParams.get('error')?.startsWith('twitter')) {
+      setError('Failed to connect X account. Please try again.')
+      router.replace('/profile')
+    }
+  }, [searchParams, router])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -162,9 +180,23 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
             </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
-                <XIcon size={13} /> X handle
+                <XIcon size={13} /> X / Twitter
               </label>
-              <input type="text" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="@yourhandle" className={inputClass} />
+              {twitterConnected ? (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/4 border border-white/8">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-sm text-white font-medium flex-1">{twitter || 'Connected'}</span>
+                  <a href="/api/auth/twitter/connect" className="text-xs text-white/30 hover:text-[#00D4FF] transition-colors">Reconnect</a>
+                </div>
+              ) : (
+                <a
+                  href="/api/auth/twitter/connect"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/4 border border-white/8 text-white/50 hover:border-white/20 hover:text-white transition-all text-sm"
+                >
+                  <XIcon size={14} />
+                  Connect X account
+                </a>
+              )}
             </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
