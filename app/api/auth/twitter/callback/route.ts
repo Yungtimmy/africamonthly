@@ -28,16 +28,14 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${base}/profile?error=twitter_invalid`)
   }
 
-  // Exchange code for token
+  // Exchange code for token — Native App (public client) sends client_id in body, no Basic Auth
   const tokenRes = await fetch('https://api.twitter.com/2/oauth2/token', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${Buffer.from(`${process.env.TWITTER_CLIENT_ID}:${process.env.TWITTER_CLIENT_SECRET}`).toString('base64')}`,
-    },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code,
       grant_type: 'authorization_code',
+      client_id: process.env.TWITTER_CLIENT_ID!,
       redirect_uri: `${base}/api/auth/twitter/callback`,
       code_verifier: codeVerifier,
     }),
