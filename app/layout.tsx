@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/Providers'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
