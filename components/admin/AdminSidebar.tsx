@@ -15,10 +15,8 @@ const adminLinks = [
 export function AdminSidebar() {
   const pathname = usePathname()
   return (
-    <nav className="w-48 shrink-0 space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-widest text-[#5A5040] px-3 mb-4">
-        Admin
-      </p>
+    <nav className="w-52 shrink-0 space-y-1">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/20 px-3 mb-5">Admin Panel</p>
       {adminLinks.map(({ href, label, icon: Icon, exact }) => {
         const isActive = exact ? pathname === href : pathname.startsWith(href)
         return (
@@ -26,13 +24,13 @@ export function AdminSidebar() {
             key={href}
             href={href}
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
               isActive
-                ? 'bg-[#D4A017]/10 text-[#D4A017]'
-                : 'text-[#A09070] hover:text-[#F5F0E8] hover:bg-[#1A1A1A]'
+                ? 'bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/20 shadow-[0_0_10px_rgba(0,212,255,0.1)]'
+                : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
             )}
           >
-            <Icon size={16} />
+            <Icon size={15} />
             {label}
           </Link>
         )

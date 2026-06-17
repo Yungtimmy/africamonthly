@@ -1,4 +1,4 @@
-import { Crown, Star, Trophy } from 'lucide-react'
+import { Crown, Trophy } from 'lucide-react'
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
 import { Avatar } from '@/components/ui/Avatar'
@@ -26,119 +26,126 @@ export default async function LeaderboardPage() {
   const top3 = users.slice(0, 3)
   const rest = users.slice(3)
 
-  const podiumOrder = [1, 0, 2] // silver, gold, bronze visual order
-  const podiumHeights = ['h-28', 'h-36', 'h-24']
-  const crownColors = ['text-[#C0C0C0]', 'text-[#D4A017]', 'text-[#CD7F32]']
-  const borderColors = ['border-[#C0C0C0]/40', 'border-[#D4A017]/60', 'border-[#CD7F32]/40']
+  // visual order: silver(1), gold(0), bronze(2)
+  const podiumOrder = [1, 0, 2]
+  const podiumConfig = [
+    { height: 'h-28', crown: 'text-[#C0C0C0]', glow: 'rgba(192,192,192,0.3)', border: 'border-white/20', rank: '#C0C0C0', label: '2nd' },
+    { height: 'h-40', crown: 'text-[#D4A017]', glow: 'rgba(212,160,23,0.4)', border: 'border-[#D4A017]/40', rank: '#D4A017', label: '1st' },
+    { height: 'h-20', crown: 'text-amber-700', glow: 'rgba(180,100,30,0.3)', border: 'border-amber-700/30', rank: '#CD7F32', label: '3rd' },
+  ]
+
+  const rowConfig = [
+    { bar: 'bg-[#D4A017]', pt: 'text-[#D4A017]', bg: 'bg-[#D4A017]/5 border-[#D4A017]/20', hover: 'hover:border-[#D4A017]/40' },
+    { bar: 'bg-[#00D4FF]', pt: 'text-[#00D4FF]', bg: 'bg-[#00D4FF]/4 border-[#00D4FF]/15', hover: 'hover:border-[#00D4FF]/35' },
+    { bar: 'bg-amber-700', pt: 'text-amber-600', bg: 'bg-amber-900/10 border-amber-800/20', hover: 'hover:border-amber-700/30' },
+    { bar: 'bg-white/10', pt: 'text-[#00D4FF]', bg: 'bg-white/2 border-white/5', hover: 'hover:border-white/10' },
+    { bar: 'bg-white/10', pt: 'text-[#00D4FF]', bg: 'bg-white/2 border-white/5', hover: 'hover:border-white/10' },
+  ]
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
-      {/* Header */}
-      <div className="text-center mb-16">
-        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#F5F0E8] mb-2">
-          {monthLabel}
-        </h1>
-        <p className="text-[#A09070]">
-          {daysLeft} days remaining · Top 5 earn rewards
-        </p>
+    <div className="relative min-h-screen">
+      {/* Aurora bg */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[50vw] h-[50vw] rounded-full bg-[#00D4FF]/5 blur-[130px]" />
+        <div className="absolute top-40 right-0 w-[30vw] h-[30vw] rounded-full bg-[#D4A017]/4 blur-[100px]" />
       </div>
 
-      {/* Podium */}
-      {top3.length > 0 && (
-        <div className="flex items-end justify-center gap-4 mb-16">
-          {podiumOrder.map((idx) => {
-            const user = top3[idx] as {
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
+            <Trophy className="w-3.5 h-3.5 text-[#D4A017]" />
+            <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Monthly Rankings</span>
+          </div>
+          <h1 className="font-serif text-5xl sm:text-6xl font-bold text-white mb-3">{monthLabel}</h1>
+          <p className="text-white/40 text-lg">
+            {daysLeft} days remaining &middot; Top 5 earn rewards
+          </p>
+        </div>
+
+        {/* Podium */}
+        {top3.length > 0 && (
+          <div className="flex items-end justify-center gap-4 mb-20">
+            {podiumOrder.map((idx) => {
+              const user = top3[idx] as {
+                _id: { toString(): string }
+                discordUsername: string
+                discordAvatar?: string
+                monthlyPoints: number
+              } | undefined
+              if (!user) return null
+              const cfg = podiumConfig[idx]
+              const rank = idx + 1
+              return (
+                <div key={user._id.toString()} className="flex flex-col items-center gap-3 flex-1 max-w-[160px]">
+                  <Crown size={22} className={cfg.crown} fill="currentColor" style={{ filter: `drop-shadow(0 0 8px ${cfg.glow})` }} />
+                  <div className="relative">
+                    <Avatar src={user.discordAvatar} name={user.discordUsername} size="lg" />
+                    {rank === 1 && (
+                      <div className="absolute inset-0 rounded-full animate-pulse" style={{ boxShadow: `0 0 20px ${cfg.glow}` }} />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium text-white text-sm truncate max-w-[120px]">{user.discordUsername}</p>
+                    <p className="font-serif font-bold text-sm mt-0.5" style={{ color: cfg.rank }}>{formatPoints(user.monthlyPoints)}</p>
+                  </div>
+                  {/* Podium block */}
+                  <div
+                    className={`w-full rounded-t-xl border-t-2 ${cfg.border} flex items-end justify-center pb-3 ${cfg.height} backdrop-blur-sm`}
+                    style={{ background: `linear-gradient(to top, rgba(255,255,255,0.04), transparent)` }}
+                  >
+                    <span className="font-serif text-3xl font-bold text-white/10">#{rank}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Full table */}
+        <div className="space-y-2">
+          {users.map((user, i) => {
+            const u = user as {
               _id: { toString(): string }
               discordUsername: string
               discordAvatar?: string
               monthlyPoints: number
-            } | undefined
-            if (!user) return null
-            const rank = idx + 1
+              totalPoints: number
+            }
+            const rank = i + 1
+            const c = rowConfig[i] ?? rowConfig[3]
             return (
-              <div key={user._id.toString()} className="flex flex-col items-center gap-3 flex-1 max-w-[160px]">
-                <Crown size={20} className={crownColors[idx]} fill="currentColor" />
-                <Avatar src={user.discordAvatar} name={user.discordUsername} size="lg" />
-                <div className="text-center">
-                  <p className="font-medium text-[#F5F0E8] text-sm truncate max-w-[120px]">
-                    {user.discordUsername}
-                  </p>
-                  <p className="text-[#D4A017] font-serif font-bold">{formatPoints(user.monthlyPoints)}</p>
-                </div>
-                <div
-                  className={`w-full rounded-t-xl border-t-2 ${borderColors[idx]} bg-[#111111] flex items-center justify-center ${podiumHeights[idx]}`}
-                >
-                  <span className="font-serif text-4xl font-bold text-[#2A2A2A]">#{rank}</span>
+              <div
+                key={u._id.toString()}
+                className={`flex items-center gap-4 rounded-2xl px-5 py-4 border transition-all duration-200 backdrop-blur-sm ${c.bg} ${c.hover}`}
+              >
+                <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
+                <span className={`font-serif font-bold text-lg w-6 text-center ${rank <= 3 ? c.pt : 'text-white/25'}`}>{rank}</span>
+                <Avatar src={u.discordAvatar} name={u.discordUsername} size="sm" />
+                <span className="flex-1 font-medium text-white/80 truncate">{u.discordUsername}</span>
+                <div className="text-right">
+                  <span className={`font-serif font-bold text-lg ${c.pt}`}>{formatPoints(u.monthlyPoints)}</span>
+                  <p className="text-xs text-white/20">{formatPoints(u.totalPoints)} total</p>
                 </div>
               </div>
             )
           })}
-        </div>
-      )}
 
-      {/* Full table */}
-      <div className="space-y-2">
-        {users.map((user, i) => {
-          const u = user as {
-            _id: { toString(): string }
-            discordUsername: string
-            discordAvatar?: string
-            monthlyPoints: number
-            totalPoints: number
-          }
-          const rank = i + 1
-          const isTop5 = rank <= 5
-          const rankColors = ['text-[#D4A017]', 'text-[#C0C0C0]', 'text-[#CD7F32]']
-
-          return (
-            <div
-              key={u._id.toString()}
-              className={`flex items-center gap-4 rounded-xl px-5 py-4 transition-colors border ${
-                isTop5
-                  ? 'bg-[#D4A017]/5 border-[#D4A017]/20 hover:border-[#D4A017]/40'
-                  : 'bg-[#111111] border-[#2A2A2A] hover:border-[#2A2A2A]'
-              }`}
-            >
-              <span
-                className={`font-serif font-bold text-lg w-7 text-center ${
-                  rank <= 3 ? rankColors[rank - 1] : 'text-[#5A5040]'
-                }`}
-              >
-                {rank}
-              </span>
-              {rank <= 3 && (
-                <Star
-                  size={12}
-                  className={rankColors[rank - 1] ?? 'text-[#5A5040]'}
-                  fill="currentColor"
-                />
-              )}
-              <Avatar src={u.discordAvatar} name={u.discordUsername} size="sm" />
-              <span className="flex-1 font-medium text-[#F5F0E8] truncate">{u.discordUsername}</span>
-              <div className="text-right">
-                <span className="font-serif font-bold text-[#D4A017] text-lg">
-                  {formatPoints(u.monthlyPoints)}
-                </span>
-                <p className="text-xs text-[#5A5040]">{formatPoints(u.totalPoints)} all-time</p>
-              </div>
+          {users.length === 0 && (
+            <div className="text-center py-24 text-white/30">
+              <Trophy className="w-14 h-14 mx-auto mb-4 text-white/10" />
+              <p className="font-serif text-2xl text-white/60 mb-2">No competitors yet</p>
+              <p className="text-sm">Be the first to earn points this month.</p>
             </div>
-          )
-        })}
+          )}
+        </div>
 
-        {users.length === 0 && (
-          <div className="text-center py-20 text-[#A09070]">
-            <Trophy className="w-12 h-12 mx-auto mb-4 text-[#2A2A2A]" />
-            <p className="font-serif text-xl text-[#F5F0E8] mb-2">No competitors yet</p>
-            <p className="text-sm">Be the first to earn points this month.</p>
-          </div>
+        {rest.length > 0 && (
+          <p className="text-center text-xs text-white/20 mt-10">
+            Top {users.length} competitors &middot; Resets in {daysLeft} days
+          </p>
         )}
       </div>
-
-      {rest.length > 0 && (
-        <p className="text-center text-xs text-[#5A5040] mt-8">
-          Showing top {users.length} competitors · Resets {daysLeft} days
-        </p>
-      )}
     </div>
   )
 }

@@ -49,17 +49,14 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
   return (
     <Modal isOpen title="Submit Proof" onClose={onClose}>
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <p className="font-serif text-[#F5F0E8] font-semibold">{task.title}</p>
+        <div className="flex items-center justify-between p-3 rounded-xl bg-white/4 border border-white/8">
+          <p className="font-serif text-white font-semibold text-sm">{task.title}</p>
           <Badge variant="points">+{task.points} pts</Badge>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="proof-url"
-              className="block text-sm font-medium text-[#A09070] mb-2"
-            >
+            <label htmlFor="proof-url" className="block text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
               Proof link
             </label>
             <input
@@ -69,17 +66,14 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
               required
-              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-4 py-3 text-[#F5F0E8] text-sm placeholder:text-[#5A5040] focus:border-[#D4A017]/60 focus:outline-none transition-colors"
+              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all"
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <p className="text-xs text-[#5A5040]">
-            Submit a link as proof of completion (tweet, screenshot, video, etc.).
-            An admin will review and approve your submission.
+          <p className="text-xs text-white/20">
+            Submit a link as proof of completion. An admin will review and award your points.
           </p>
 
           <div className="flex gap-3 pt-2">

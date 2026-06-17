@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Trophy, CheckCircle, TrendingUp, Star, ArrowRight, Zap } from 'lucide-react'
+import { Trophy, CheckCircle, TrendingUp, Star, ArrowRight, Zap, Users, Target } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
@@ -26,88 +26,107 @@ export default async function HomePage() {
   const monthLabel = getCurrentMonthLabel()
 
   return (
-    <div>
-      {/* Hero — split layout: left = logo zone, right = content */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        {/* Background atmosphere */}
+    <div className="relative">
+
+      {/* ── HERO ───────────────────────────────────────────────── */}
+      <section className="relative min-h-[94vh] flex items-center overflow-hidden">
+        {/* Aurora background */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Blue glow — left/center */}
-          <div className="absolute top-[-10%] left-[5%] w-[55vw] h-[55vw] rounded-full bg-[#4B3DE8]/10 blur-[130px]" />
-          {/* Gold glow — right */}
-          <div className="absolute top-[10%] right-[-5%] w-[45vw] h-[45vw] rounded-full bg-[#D4A017]/8 blur-[110px]" />
-          {/* Deep blue bottom accent */}
-          <div className="absolute bottom-0 left-[20%] w-[30vw] h-[30vw] rounded-full bg-[#4B3DE8]/6 blur-[100px]" />
-          {/* Subtle grid */}
+          <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-[#00D4FF]/6 blur-[140px]" />
+          <div className="absolute top-[20%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-[#0057A8]/12 blur-[120px]" />
+          <div className="absolute bottom-[-10%] left-[30%] w-[40vw] h-[40vw] rounded-full bg-[#D4A017]/5 blur-[100px]" />
+          {/* Grid overlay */}
           <div
-            className="absolute inset-0 opacity-[0.025]"
+            className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage:
-                'linear-gradient(#4B3DE8 1px, transparent 1px), linear-gradient(90deg, #4B3DE8 1px, transparent 1px)',
-              backgroundSize: '60px 60px',
+                'linear-gradient(rgba(0,212,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,1) 1px, transparent 1px)',
+              backgroundSize: '64px 64px',
             }}
           />
+          {/* Radial vignette */}
+          <div className="absolute inset-0 bg-radial-gradient" style={{
+            background: 'radial-gradient(ellipse at center, transparent 40%, #0A0F1E 100%)'
+          }} />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-            {/* LEFT HALF — logo */}
-            <div className="hidden lg:flex items-center justify-center min-h-[420px]">
-              <div className="relative w-[340px] h-[340px] flex items-center justify-center">
-                {/* Pulsing rings */}
-                <div className="absolute inset-0 rounded-full border border-[#4B3DE8]/20 animate-ping" style={{ animationDuration: '3s' }} />
-                <div className="absolute inset-[15%] rounded-full border border-[#D4A017]/15 animate-ping" style={{ animationDuration: '4s', animationDelay: '1s' }} />
+            {/* LEFT — Logo with cosmic rings */}
+            <div className="hidden lg:flex items-center justify-center">
+              <div className="relative w-[380px] h-[380px] flex items-center justify-center">
+                {/* Outer slow-pulse ring */}
+                <div className="absolute inset-0 rounded-full border border-[#00D4FF]/10 animate-[pulse_4s_ease-in-out_infinite]" />
+                {/* Mid ring */}
+                <div className="absolute inset-[12%] rounded-full border border-[#00D4FF]/15 animate-[pulse_3s_ease-in-out_infinite_0.5s]" />
+                {/* Inner ring */}
+                <div className="absolute inset-[24%] rounded-full border border-[#D4A017]/20 animate-[pulse_5s_ease-in-out_infinite_1s]" />
+                {/* Glow disc */}
+                <div className="absolute inset-[30%] rounded-full bg-[#00D4FF]/6 blur-[24px]" />
+                {/* Logo */}
                 <Image
                   src="/logo.png"
                   alt="Africa Monthly"
-                  width={260}
-                  height={260}
-                  className="relative z-10 drop-shadow-[0_0_40px_rgba(75,61,232,0.4)]"
+                  width={220}
+                  height={220}
+                  className="relative z-10 rounded-full drop-shadow-[0_0_48px_rgba(0,212,255,0.5)] animate-[pulse_6s_ease-in-out_infinite]"
                   priority
+                />
+                {/* Orbiting dot — cyan */}
+                <div
+                  className="absolute w-3 h-3 rounded-full bg-[#00D4FF] shadow-[0_0_12px_#00D4FF]"
+                  style={{
+                    top: '10%', left: '50%',
+                    animation: 'spin 8s linear infinite',
+                    transformOrigin: '0 170px',
+                  }}
                 />
               </div>
             </div>
 
-            {/* RIGHT HALF — hero text content */}
-            <div className="lg:pl-8">
-              {/* Month badge */}
-              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-[#4B3DE8]/30 bg-[#4B3DE8]/8">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4B3DE8] animate-pulse" />
-                <Trophy className="text-[#D4A017] w-4 h-4" />
-                <span className="text-xs font-semibold text-[#A09070] uppercase tracking-widest">
-                  {monthLabel} Competition
+            {/* RIGHT — Content */}
+            <div>
+              {/* Live badge */}
+              <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-[#00D4FF]/8 border border-[#00D4FF]/20 backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
+                <Trophy className="w-3.5 h-3.5 text-[#00D4FF]" />
+                <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">
+                  {monthLabel} Competition · Live
                 </span>
               </div>
 
+              {/* Headline */}
               <h1
-                className="font-serif font-bold text-[#F5F0E8] leading-[1.05]"
-                style={{ fontSize: 'clamp(2.6rem, 6vw, 5rem)' }}
+                className="font-serif font-bold leading-[1.05]"
+                style={{ fontSize: 'clamp(2.8rem, 5.5vw, 5rem)' }}
               >
-                Compete.{' '}
+                <span className="text-white">Compete.</span>{' '}
                 <span
                   className="italic text-transparent bg-clip-text"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #D4A017 0%, #E8B94F 100%)' }}
+                  style={{ backgroundImage: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 100%)' }}
                 >
                   Engage.
                 </span>{' '}
                 <span
                   className="text-transparent bg-clip-text"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #7B6FF0 0%, #4B3DE8 100%)' }}
+                  style={{ backgroundImage: 'linear-gradient(135deg, #D4A017 0%, #E8B94F 100%)' }}
                 >
                   Win.
                 </span>
               </h1>
 
-              <p className="mt-6 text-lg text-[#A09070] leading-relaxed max-w-lg">
-                Join the African community&apos;s monthly leaderboard. Complete tasks, chat on
-                Telegram, and participate in events to earn points. Top&nbsp;5 win exclusive rewards.
+              <p className="mt-6 text-lg text-white/50 leading-relaxed max-w-lg">
+                The African community&apos;s monthly leaderboard powered by{' '}
+                <span className="text-[#00D4FF]/80">Injective Chain</span>. Complete tasks, chat on
+                Telegram, participate in events — top 5 win exclusive rewards every month.
               </p>
 
-              {/* CTA buttons */}
+              {/* CTAs */}
               <div className="mt-10 flex flex-wrap gap-4">
                 <Link href="/tasks">
                   <Button size="lg">
-                    Start Earning Points <ArrowRight size={18} />
+                    Start Earning <ArrowRight size={18} />
                   </Button>
                 </Link>
                 <Link href="/leaderboard">
@@ -117,122 +136,121 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              {/* Stats strip */}
-              <div className="mt-12 flex flex-wrap gap-6">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#111111] border border-[#2A2A2A] hover:border-[#4B3DE8]/40 transition-colors">
-                  <Zap className="w-4 h-4 text-[#4B3DE8]" />
-                  <div>
-                    <span className="text-[#D4A017] font-serif font-bold text-xl block leading-none">{daysLeft}</span>
-                    <span className="text-[#A09070] text-xs">days left</span>
+              {/* Stat chips */}
+              <div className="mt-12 flex flex-wrap gap-3">
+                {[
+                  { icon: <Zap className="w-4 h-4 text-[#00D4FF]" />, value: daysLeft.toString(), label: 'days left', glow: 'inj' },
+                  { icon: <Trophy className="w-4 h-4 text-[#D4A017]" />, value: 'Top 5', label: 'rewarded', glow: 'gold' },
+                  { icon: <Star className="w-4 h-4 text-[#00D4FF]" fill="currentColor" />, value: '10:1', label: 'chats → pts', glow: 'inj' },
+                ].map((s) => (
+                  <div
+                    key={s.value}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/4 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/6 transition-all duration-200 backdrop-blur-sm"
+                  >
+                    {s.icon}
+                    <div>
+                      <span className={`font-serif font-bold text-xl block leading-none ${s.glow === 'gold' ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>{s.value}</span>
+                      <span className="text-white/30 text-xs">{s.label}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#111111] border border-[#2A2A2A] hover:border-[#D4A017]/40 transition-colors">
-                  <Trophy className="w-4 h-4 text-[#D4A017]" />
-                  <div>
-                    <span className="text-[#D4A017] font-serif font-bold text-xl block leading-none">Top 5</span>
-                    <span className="text-[#A09070] text-xs">get rewarded</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#111111] border border-[#2A2A2A] hover:border-[#4B3DE8]/40 transition-colors">
-                  <Star className="w-4 h-4 text-[#4B3DE8]" fill="currentColor" />
-                  <div>
-                    <span className="text-[#D4A017] font-serif font-bold text-xl block leading-none">10:1</span>
-                    <span className="text-[#A09070] text-xs">chats to points</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="py-24 border-t border-[#2A2A2A] relative overflow-hidden">
+      {/* ── HOW IT WORKS ───────────────────────────────────────── */}
+      <section className="py-28 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[40vw] h-[40vw] rounded-full bg-[#4B3DE8]/5 blur-[100px]" />
+          <div className="absolute right-0 top-0 w-[40vw] h-[40vw] rounded-full bg-[#00D4FF]/4 blur-[100px]" />
         </div>
+        {/* Section divider */}
+        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/20 to-transparent mb-24" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full border border-[#4B3DE8]/25 bg-[#4B3DE8]/6">
-              <span className="text-xs font-semibold text-[#7B6FF0] uppercase tracking-widest">Simple Process</span>
+          <div className="mb-16 text-center">
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
+              <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">How It Works</span>
             </div>
-            <h2 className="font-serif text-3xl font-bold text-[#F5F0E8] mb-2">How It Works</h2>
-            <p className="text-[#A09070]">Three steps to climb the leaderboard.</p>
+            <h2 className="font-serif text-4xl font-bold text-white mb-3">Three steps to the top</h2>
+            <p className="text-white/40 max-w-md mx-auto">Join the competition, earn points across multiple activities, and claim your reward.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: <CheckCircle className="text-[#4B3DE8] w-6 h-6" />,
-                iconBg: 'bg-[#4B3DE8]/10',
+                icon: <CheckCircle className="text-[#00D4FF] w-6 h-6" />,
+                iconBg: 'bg-[#00D4FF]/10 border border-[#00D4FF]/20',
                 step: '01',
-                stepColor: 'text-[#4B3DE8]/30',
-                hoverBorder: 'hover:border-[#4B3DE8]/40',
-                accentLine: 'bg-[#4B3DE8]',
                 title: 'Connect Discord',
-                desc: 'Sign in with Discord, then link your Telegram, X account, and wallet on your profile.',
+                desc: 'Sign in with Discord, then link your Telegram, X account, and wallet on your profile page.',
+                accentColor: '#00D4FF',
+                glowClass: 'hover:shadow-[0_0_30px_rgba(0,212,255,0.08)] hover:border-[#00D4FF]/30',
               },
               {
-                icon: <TrendingUp className="text-[#D4A017] w-6 h-6" />,
-                iconBg: 'bg-[#D4A017]/10',
+                icon: <Target className="text-[#D4A017] w-6 h-6" />,
+                iconBg: 'bg-[#D4A017]/10 border border-[#D4A017]/20',
                 step: '02',
-                stepColor: 'text-[#D4A017]/30',
-                hoverBorder: 'hover:border-[#D4A017]/40',
-                accentLine: 'bg-[#D4A017]',
                 title: 'Complete Tasks',
-                desc: 'Tasks are posted regularly. Submit proof links and earn points when admin approves.',
+                desc: 'Tasks drop regularly. Submit your proof link — admin approves and points land instantly.',
+                accentColor: '#D4A017',
+                glowClass: 'hover:shadow-[0_0_30px_rgba(212,160,23,0.08)] hover:border-[#D4A017]/30',
               },
               {
-                icon: <Trophy className="text-[#4B3DE8] w-6 h-6" />,
-                iconBg: 'bg-[#4B3DE8]/10',
+                icon: <Trophy className="text-[#00D4FF] w-6 h-6" />,
+                iconBg: 'bg-[#00D4FF]/10 border border-[#00D4FF]/20',
                 step: '03',
-                stepColor: 'text-[#4B3DE8]/30',
-                hoverBorder: 'hover:border-[#4B3DE8]/40',
-                accentLine: 'bg-gradient-to-r from-[#4B3DE8] to-[#D4A017]',
                 title: 'Climb & Win',
-                desc: 'Earn points from tasks, Telegram chats, and special events. Top 5 win monthly rewards.',
+                desc: 'Stack points from tasks, Telegram chats, spaces, and workshops. Top 5 win every month.',
+                accentColor: '#00D4FF',
+                glowClass: 'hover:shadow-[0_0_30px_rgba(0,212,255,0.08)] hover:border-[#00D4FF]/30',
               },
             ].map((item) => (
               <div
                 key={item.step}
-                className={`relative bg-[#111111] border border-[#2A2A2A] rounded-2xl p-8 ${item.hoverBorder} transition-all duration-300 hover:translate-y-[-2px] cursor-default overflow-hidden`}
+                className={`relative rounded-2xl p-8 transition-all duration-300 cursor-default overflow-hidden ${item.glowClass} bg-white/3 border border-white/6 backdrop-blur-sm hover:-translate-y-1`}
               >
-                {/* Top accent line */}
-                <div className={`absolute top-0 left-8 right-8 h-[2px] ${item.accentLine} rounded-b-full opacity-60`} />
-                <div className="flex items-center gap-3 mb-5">
-                  <div className={`w-10 h-10 rounded-lg ${item.iconBg} flex items-center justify-center`}>
+                {/* Top glow line */}
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[1px]"
+                  style={{ background: `linear-gradient(90deg, transparent, ${item.accentColor}60, transparent)` }}
+                />
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-11 h-11 rounded-xl ${item.iconBg} flex items-center justify-center`}>
                     {item.icon}
                   </div>
-                  <span className={`font-serif ${item.stepColor} text-4xl font-bold leading-none`}>
+                  <span className="font-serif font-bold text-5xl leading-none" style={{ color: `${item.accentColor}18` }}>
                     {item.step}
                   </span>
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-[#F5F0E8] mb-2">{item.title}</h3>
-                <p className="text-[#A09070] text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="font-serif text-xl font-semibold text-white mb-3">{item.title}</h3>
+                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Mini Leaderboard */}
+      {/* ── MINI LEADERBOARD ───────────────────────────────────── */}
       {topUsers.length > 0 && (
-        <section className="py-24 border-t border-[#2A2A2A] relative overflow-hidden">
+        <section className="py-28 relative overflow-hidden">
+          <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/20 to-transparent mb-24" />
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute bottom-0 left-0 w-[35vw] h-[35vw] rounded-full bg-[#D4A017]/4 blur-[100px]" />
           </div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-12">
               <div>
-                <div className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full border border-[#D4A017]/25 bg-[#D4A017]/6">
+                <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
+                  <Users className="w-3.5 h-3.5 text-[#D4A017]" />
                   <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Live Rankings</span>
                 </div>
-                <h2 className="font-serif text-3xl font-bold text-[#F5F0E8]">{monthLabel}</h2>
-                <p className="text-[#A09070] mt-1">Current standings — {daysLeft} days remaining</p>
+                <h2 className="font-serif text-4xl font-bold text-white">{monthLabel}</h2>
+                <p className="text-white/40 mt-1">Current standings — {daysLeft} days remaining</p>
               </div>
               <Link href="/leaderboard">
                 <Button variant="ghost" size="sm">
-                  Full leaderboard <ArrowRight size={16} />
+                  Full board <ArrowRight size={16} />
                 </Button>
               </Link>
             </div>
@@ -245,24 +263,27 @@ export default async function HomePage() {
                   discordAvatar?: string
                   monthlyPoints: number
                 }
-                const rankColors = ['text-[#D4A017]', 'text-[#C0C0C0]', 'text-[#CD7F32]']
-                const rowGlow = i === 0 ? 'hover:border-[#D4A017]/40 hover:shadow-[0_0_20px_#D4A017]/10' : i === 1 ? 'hover:border-[#4B3DE8]/40' : 'hover:border-[#2A2A2A]/60'
+                const configs = [
+                  { bar: 'bg-[#D4A017]', border: 'border-[#D4A017]/25', rank: 'text-[#D4A017]', glow: 'hover:shadow-[0_0_20px_rgba(212,160,23,0.1)]' },
+                  { bar: 'bg-[#00D4FF]', border: 'border-[#00D4FF]/20', rank: 'text-[#00D4FF]', glow: 'hover:shadow-[0_0_20px_rgba(0,212,255,0.1)]' },
+                  { bar: 'bg-amber-700', border: 'border-amber-700/20', rank: 'text-amber-600', glow: '' },
+                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/30', glow: '' },
+                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/30', glow: '' },
+                ]
+                const c = configs[i] ?? configs[3]
                 return (
                   <div
                     key={u._id.toString()}
-                    className={`flex items-center gap-4 bg-[#111111] border border-[#2A2A2A] rounded-xl px-5 py-4 transition-all duration-200 ${rowGlow} ${i === 0 ? 'border-[#D4A017]/20' : ''}`}
+                    className={`flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-200 bg-white/3 border backdrop-blur-sm ${c.border} ${c.glow}`}
                   >
-                    {/* Rank indicator bar */}
-                    <div className={`w-1 h-8 rounded-full ${i === 0 ? 'bg-[#D4A017]' : i === 1 ? 'bg-[#4B3DE8]' : i === 2 ? 'bg-[#CD7F32]' : 'bg-[#2A2A2A]'}`} />
-                    <span className={`font-serif font-bold text-xl w-6 ${rankColors[i] ?? 'text-[#5A5040]'}`}>
-                      {i + 1}
-                    </span>
+                    <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
+                    <span className={`font-serif font-bold text-xl w-5 ${c.rank}`}>{i + 1}</span>
                     <Avatar src={u.discordAvatar} name={u.discordUsername} size="sm" />
-                    <span className="flex-1 font-medium text-[#F5F0E8]">{u.discordUsername}</span>
-                    <span className="font-serif font-bold text-[#D4A017] text-lg">
+                    <span className="flex-1 font-medium text-white/80 truncate">{u.discordUsername}</span>
+                    <span className={`font-serif font-bold text-lg ${i === 0 ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>
                       {formatPoints(u.monthlyPoints)}
                     </span>
-                    <span className="text-xs text-[#5A5040]">pts</span>
+                    <span className="text-xs text-white/20">pts</span>
                   </div>
                 )
               })}
@@ -271,21 +292,25 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* CTA */}
-      <section className="py-24 border-t border-[#2A2A2A] relative overflow-hidden">
+      {/* ── CTA ────────────────────────────────────────────────── */}
+      <section className="py-28 relative overflow-hidden">
+        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/20 to-transparent mb-24" />
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#4B3DE8]/4 to-[#D4A017]/4" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[30vw] rounded-full bg-[#4B3DE8]/8 blur-[120px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.06)_0%,transparent_70%)]" />
         </div>
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-[#4B3DE8]/30 bg-[#4B3DE8]/8">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4B3DE8] animate-pulse" />
-            <span className="text-xs font-semibold text-[#7B6FF0] uppercase tracking-widest">Monthly Reset Active</span>
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
+            <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">Resets Monthly</span>
           </div>
-          <h2 className="font-serif text-4xl font-bold text-[#F5F0E8] mb-4">Ready to compete?</h2>
-          <p className="text-[#A09070] text-lg mb-8">
-            Join with Discord and start earning points today. The leaderboard resets monthly —
-            every competition is a fresh start.
+          <h2 className="font-serif text-5xl font-bold text-white mb-5 leading-tight">
+            Ready to{' '}
+            <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #00D4FF, #D4A017)' }}>
+              compete?
+            </span>
+          </h2>
+          <p className="text-white/40 text-lg mb-10 max-w-xl mx-auto">
+            Every month is a fresh start. Join with Discord, connect your accounts, and start stacking points from day one.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link href="/tasks">
@@ -294,7 +319,7 @@ export default async function HomePage() {
               </Button>
             </Link>
             <Link href="/leaderboard">
-              <Button variant="ghost" size="lg">
+              <Button variant="outline" size="lg">
                 View Rankings
               </Button>
             </Link>

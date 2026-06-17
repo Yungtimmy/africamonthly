@@ -33,28 +33,35 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[40] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[40] flex items-center justify-center p-4 bg-[#0A0F1E]/80 backdrop-blur-md"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
+      {/* Glow behind modal */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div className="w-96 h-96 rounded-full bg-[#00D4FF]/5 blur-[80px]" />
+      </div>
       <div
         className={cn(
-          'relative w-full max-w-md bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl z-[50]',
+          'relative w-full max-w-md rounded-2xl z-[50] overflow-hidden',
+          'bg-[#0D1525]/90 border border-[#00D4FF]/20 shadow-[0_0_40px_rgba(0,212,255,0.1),0_25px_60px_rgba(0,0,0,0.6)]',
           className
         )}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A]">
-          <h2 id="modal-title" className="font-serif text-lg font-semibold text-[#F5F0E8]">
+        {/* Top accent line */}
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/60 to-transparent" />
+        <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <h2 id="modal-title" className="font-serif text-lg font-semibold text-white">
             {title}
           </h2>
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-1 rounded-lg text-[#A09070] hover:text-[#F5F0E8] hover:bg-[#1A1A1A] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
+            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
         <div className="p-6">{children}</div>
