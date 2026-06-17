@@ -26,19 +26,18 @@ async function getUserData(userId: string) {
 
   return {
     user: {
-      _id: { toString: () => user.id },
+      id: user.id,
       discordUsername: user.discord_username,
       discordAvatar: user.discord_avatar,
-      telegram: user.telegram_username
-        ? { username: user.telegram_username, chatCount: user.telegram_chat_count }
-        : undefined,
+      telegramId: user.telegram_id ?? undefined,
+      telegramChatCount: user.telegram_chat_count ?? 0,
       twitter: user.twitter,
       walletAddress: user.wallet_address,
       totalPoints: user.total_points,
       monthlyPoints: user.monthly_points,
     },
     submissions: (submissions ?? []).map((s) => ({
-      _id: { toString: () => s.id },
+      id: s.id,
       proofUrl: s.proof_url,
       status: s.status,
       pointsAwarded: s.points_awarded,

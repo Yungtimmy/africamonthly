@@ -5,10 +5,10 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatPoints, formatRelativeTime } from '@/lib/utils'
-import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash } from 'lucide-react'
+import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash, Info } from 'lucide-react'
 
 interface Submission {
-  _id: { toString(): string }
+  id: string
   proofUrl: string
   status: string
   pointsAwarded?: number
@@ -18,10 +18,11 @@ interface Submission {
 
 interface ProfileClientProps {
   user: {
-    _id: { toString(): string }
+    id: string
     discordUsername: string
     discordAvatar?: string
-    telegram?: { username: string; chatCount: number }
+    telegramId?: string
+    telegramChatCount: number
     twitter?: string
     walletAddress?: string
     totalPoints: number
@@ -34,34 +35,45 @@ interface ProfileClientProps {
 const inputClass = 'w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all duration-200'
 
 export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
-  const [telegram, setTelegram] = useState(user.telegram?.username ?? '')
+  const [telegramId, setTelegramId] = useState(user.telegramId ?? '')
   const [twitter, setTwitter] = useState(user.twitter ?? '')
   const [wallet, setWallet] = useState(user.walletAddress ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    setError(null)
+    if (telegramId && !/^\d+$/.test(telegramId)) {
+      setError('Telegram ID must be a number. Message @userinfobot on Telegram to get your ID.')
+      return
+    }
     setSaving(true)
     try {
-      await fetch('/api/profile', {
+      const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram, twitter, wallet }),
+        body: JSON.stringify({ telegramId, twitter, wallet }),
       })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        const data = await res.json()
+        setError(data.error ?? 'Failed to save')
+      }
     } finally {
       setSaving(false)
     }
   }
 
-  const chatCount = user.telegram?.chatCount ?? 0
+  const chatCount = user.telegramChatCount ?? 0
   const telegramPoints = Math.floor(chatCount / 10)
+  const nextPointIn = 10 - (chatCount % 10)
 
   return (
     <div className="relative min-h-screen">
-      {/* Aurora */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-0 right-0 w-[40vw] h-[40vw] rounded-full bg-[#00D4FF]/4 blur-[120px]" />
         <div className="absolute bottom-0 left-0 w-[30vw] h-[30vw] rounded-full bg-[#D4A017]/3 blur-[100px]" />
@@ -99,7 +111,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
         </div>
 
         {/* Telegram tracker */}
-        {user.telegram?.username && (
+        {user.telegramId && (
           <div className="rounded-2xl p-5 flex items-center gap-4 bg-white/3 border border-white/8 backdrop-blur-sm">
             <div className="w-11 h-11 rounded-xl bg-[#00D4FF]/10 border border-[#00D4FF]/20 flex items-center justify-center shrink-0">
               <MessageCircle className="text-[#00D4FF] w-5 h-5" />
@@ -107,7 +119,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
             <div className="flex-1">
               <p className="text-sm font-medium text-white">Telegram Activity</p>
               <p className="text-xs text-white/30 mt-0.5">
-                {chatCount} messages → <span className="text-[#00D4FF]">{telegramPoints} points</span>
+                {chatCount} messages → <span className="text-[#00D4FF]">{telegramPoints} points earned</span>
               </p>
               <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
@@ -115,7 +127,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
                   style={{ width: `${Math.min(100, (chatCount % 10) * 10)}%` }}
                 />
               </div>
-              <p className="text-xs text-white/20 mt-1">{10 - (chatCount % 10)} more until next point</p>
+              <p className="text-xs text-white/20 mt-1">{nextPointIn} more message{nextPointIn !== 1 ? 's' : ''} until next point</p>
             </div>
           </div>
         )}
@@ -127,9 +139,21 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
-                <MessageCircle size={13} /> Telegram username
+                <MessageCircle size={13} /> Telegram ID
               </label>
-              <input type="text" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@yourname" className={inputClass} />
+              <input
+                type="text"
+                value={telegramId}
+                onChange={(e) => setTelegramId(e.target.value)}
+                placeholder="e.g. 123456789"
+                className={inputClass}
+              />
+              <div className="flex items-start gap-1.5 mt-1.5">
+                <Info size={11} className="text-white/20 mt-0.5 shrink-0" />
+                <p className="text-xs text-white/25">
+                  Message <span className="text-[#00D4FF]">@userinfobot</span> on Telegram to get your numeric ID
+                </p>
+              </div>
             </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
@@ -143,6 +167,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
               </label>
               <input type="text" value={wallet} onChange={(e) => setWallet(e.target.value)} placeholder="inj1..." className={`${inputClass} font-mono`} />
             </div>
+            {error && <p className="text-sm text-red-400">{error}</p>}
             <Button type="submit" disabled={saving} variant={saved ? 'outline' : 'primary'} size="sm">
               {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Accounts'}
             </Button>
@@ -158,7 +183,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
             <div className="space-y-2">
               {submissions.map((sub) => (
                 <div
-                  key={sub._id.toString()}
+                  key={sub.id}
                   className="rounded-2xl p-4 flex items-center gap-4 bg-white/3 border border-white/6 backdrop-blur-sm"
                 >
                   <div className="flex-1 min-w-0">

@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase'
 
-export async function processTelegramMessage(telegramUsername: string) {
-  // Upsert telegram_events row
+export async function processTelegramMessage(telegramId: string, displayName: string) {
+  // Upsert telegram_events by telegram_id
   const { data: existing } = await supabase
     .from('telegram_events')
     .select('*')
-    .eq('telegram_username', telegramUsername)
+    .eq('telegram_id', telegramId)
     .single()
 
   let messageCount: number
@@ -17,14 +17,16 @@ export async function processTelegramMessage(telegramUsername: string) {
 
     await supabase.from('telegram_events').update({
       message_count: messageCount,
+      display_name: displayName,
       synced_at: new Date().toISOString(),
-    }).eq('telegram_username', telegramUsername)
+    }).eq('telegram_id', telegramId)
   } else {
     messageCount = 1
     previousPointsAwarded = 0
 
     await supabase.from('telegram_events').insert({
-      telegram_username: telegramUsername,
+      telegram_id: telegramId,
+      display_name: displayName,
       message_count: 1,
       points_awarded: 0,
     })
@@ -37,12 +39,13 @@ export async function processTelegramMessage(telegramUsername: string) {
 
     await supabase.from('telegram_events').update({
       points_awarded: newPointsTotal,
-    }).eq('telegram_username', telegramUsername)
+    }).eq('telegram_id', telegramId)
 
+    // Find user linked to this telegram_id
     const { data: user } = await supabase
       .from('users')
       .select('id, total_points, monthly_points')
-      .eq('telegram_username', telegramUsername)
+      .eq('telegram_id', telegramId)
       .single()
 
     if (user) {
