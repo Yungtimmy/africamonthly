@@ -49,7 +49,7 @@ export default async function TasksPage() {
             <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">Monthly Tasks</span>
           </div>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-3">Earn Points</h1>
-          <p className="text-white/40">Complete tasks to earn points. Submit a proof link and an admin will review it.</p>
+          <p className="text-white/40">Complete tasks to earn points.</p>
         </div>
         <TaskList tasks={tasks} isLoggedIn={!!session?.user} />
       </div>
