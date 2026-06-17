@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { Users, Clock, ListTodo, Zap } from 'lucide-react'
+import { ResetMonthButton } from '@/components/admin/ResetMonthButton'
 
 async function getStats() {
   const [
@@ -34,7 +35,10 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl font-bold text-white mb-2">Dashboard</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="font-serif text-3xl font-bold text-white">Dashboard</h1>
+        <ResetMonthButton />
+      </div>
       <p className="text-white/30 text-sm mb-10">Overview of this month&apos;s activity.</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
