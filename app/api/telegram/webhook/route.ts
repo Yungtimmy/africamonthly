@@ -92,7 +92,7 @@ async function handleStatsCommand(chatId: string, args: string) {
     })
 
     await sendMessage(chatId,
-      `🏆 <b>Africa Monthly Leaderboard</b>\n\n${lines.join('\n')}\n\n<i>Top 5 earn rewards this month!</i>`
+      `🏆 <b>Africa Monthly Leaderboard</b>\n\n${lines.join('\n')}\n\n`
     )
   }
 }
