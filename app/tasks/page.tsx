@@ -11,9 +11,9 @@ async function getTasksWithStatus(userId?: string) {
 
   if (!tasks) return []
 
-  if (!userId) return tasks.map((t) => ({ ...t, submissionStatus: null }))
+  if (!userId) return tasks.map((t: Record<string, unknown>) => ({ ...t, submissionStatus: null }))
 
-  const taskIds = tasks.map((t) => t.id)
+  const taskIds = tasks.map((t: Record<string, unknown>) => t.id)
   const { data: submissions } = await supabase
     .from('submissions')
     .select('task_id, status')
@@ -22,10 +22,10 @@ async function getTasksWithStatus(userId?: string) {
     .neq('status', 'rejected')
 
   const submissionMap = new Map(
-    (submissions ?? []).map((s) => [s.task_id, s.status])
+    (submissions ?? []).map((s: { task_id: string; status: string }) => [s.task_id, s.status])
   )
 
-  return tasks.map((t) => ({
+  return tasks.map((t: Record<string, unknown>) => ({
     ...t,
     submissionStatus: submissionMap.get(t.id) ?? null,
   }))

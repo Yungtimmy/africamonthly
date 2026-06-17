@@ -260,7 +260,7 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-3 max-w-2xl">
-              {topUsers.map((u, i) => {
+              {topUsers.map((u: { id: string; discord_username: string; discord_avatar: string; monthly_points: number }, i: number) => {
                 const configs = [
                   { bar: 'bg-[#D4A017]', border: 'border-[#D4A017]/25', rank: 'text-[#D4A017]', glow: 'hover:shadow-[0_0_20px_rgba(212,160,23,0.1)]' },
                   { bar: 'bg-[#00D4FF]', border: 'border-[#00D4FF]/20', rank: 'text-[#00D4FF]', glow: 'hover:shadow-[0_0_20px_rgba(0,212,255,0.1)]' },
