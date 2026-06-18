@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 
-export async function processTelegramMessage(telegramId: string, displayName: string) {
+export async function processTelegramMessage(telegramId: string, displayName: string, telegramUsername?: string) {
   const { data: existing, error: selectErr } = await supabase
     .from('telegram_events')
     .select('*')
@@ -30,6 +30,7 @@ export async function processTelegramMessage(telegramId: string, displayName: st
 
     const { error } = await supabase.from('telegram_events').insert({
       telegram_id: telegramId,
+      telegram_username: telegramUsername ?? telegramId,
       display_name: displayName,
       message_count: 1,
       points_awarded: 0,

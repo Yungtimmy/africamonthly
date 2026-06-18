@@ -183,7 +183,7 @@ async function handleMessage(message: TelegramMessage) {
     : [from.first_name, from.last_name].filter(Boolean).join(' ')
 
   console.log(`[track] ${displayName} (${telegramId})`)
-  await processTelegramMessage(telegramId, displayName)
+  await processTelegramMessage(telegramId, displayName, from.username)
 }
 
 async function poll() {
