@@ -113,6 +113,16 @@ export async function POST(req: Request) {
     const telegramId = String(from.id)
     const text: string = message.text ?? ''
 
+    // /ping — works anywhere, confirms bot is live
+    if (text.startsWith('/ping')) {
+      await sendMessage(chatId,
+        `🟢 <b>Africa Monthly Bot is live!</b>\n` +
+        `📡 Webhook active — messages are being tracked.\n` +
+        `🔗 <a href="https://injectiveafrica.vercel.app">injectiveafrica.vercel.app</a>`
+      )
+      return NextResponse.json({ ok: true })
+    }
+
     // /start — works in DMs and in the group
     if (text.startsWith('/start')) {
       await sendMessage(chatId,
