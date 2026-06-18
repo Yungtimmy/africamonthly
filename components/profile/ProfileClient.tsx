@@ -6,7 +6,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatPoints, formatRelativeTime } from '@/lib/utils'
-import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash } from 'lucide-react'
+import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash, Sparkles, Flame, Crown, CheckCircle2, Medal, Lock, Award } from 'lucide-react'
 import { KeplrConnect } from './KeplrConnect'
 import { TelegramLogin } from './TelegramLogin'
 
@@ -88,6 +88,20 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
   const chatCount = user.telegramChatCount ?? 0
   const telegramPoints = Math.floor(chatCount / 10)
   const nextPointIn = 10 - (chatCount % 10)
+
+  const approvedCount = submissions.filter((s) => s.status === 'approved').length
+
+  const achievements = [
+    { icon: Sparkles, label: 'First Point', desc: 'Earn your first point', unlocked: user.totalPoints >= 1, color: 'text-[#00D4FF]' },
+    { icon: TrendingUp, label: 'Rising Star', desc: 'Reach 50 all-time points', unlocked: user.totalPoints >= 50, color: 'text-[#00D4FF]' },
+    { icon: Trophy, label: 'Centurion', desc: 'Reach 100 all-time points', unlocked: user.totalPoints >= 100, color: 'text-[#D4A017]' },
+    { icon: Flame, label: 'High Roller', desc: 'Reach 500 all-time points', unlocked: user.totalPoints >= 500, color: 'text-orange-400' },
+    { icon: Crown, label: 'Legend', desc: 'Reach 1,000 all-time points', unlocked: user.totalPoints >= 1000, color: 'text-[#D4A017]' },
+    { icon: MessageCircle, label: 'Chatterbox', desc: 'Send 100 Telegram messages', unlocked: chatCount >= 100, color: 'text-[#00D4FF]' },
+    { icon: CheckCircle2, label: 'Task Master', desc: 'Get 5 tasks approved', unlocked: approvedCount >= 5, color: 'text-emerald-400' },
+    { icon: Medal, label: 'Podium Finish', desc: 'Rank in the top 3', unlocked: rank <= 3, color: 'text-[#D4A017]' },
+  ]
+  const unlockedCount = achievements.filter((a) => a.unlocked).length
 
   return (
     <div className="relative min-h-screen">
@@ -210,6 +224,37 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
               {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Accounts'}
             </Button>
           </form>
+        </div>
+
+        {/* Achievements */}
+        <div className="rounded-2xl p-7 bg-white/3 border border-white/8 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/40 to-transparent" />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-serif text-xl font-semibold text-white flex items-center gap-2">
+              <Award size={18} className="text-[#D4A017]" /> Achievements
+            </h2>
+            <span className="text-xs font-semibold text-white/40">{unlockedCount}/{achievements.length} unlocked</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {achievements.map((a) => {
+              const Icon = a.unlocked ? a.icon : Lock
+              return (
+                <div
+                  key={a.label}
+                  title={a.desc}
+                  className={`relative rounded-xl p-4 flex flex-col items-center text-center gap-2 border transition-all ${
+                    a.unlocked
+                      ? 'bg-white/4 border-white/10'
+                      : 'bg-white/[0.015] border-white/5 opacity-50'
+                  }`}
+                >
+                  <Icon size={22} className={a.unlocked ? a.color : 'text-white/30'} />
+                  <p className={`text-xs font-semibold ${a.unlocked ? 'text-white' : 'text-white/40'}`}>{a.label}</p>
+                  <p className="text-[10px] text-white/30 leading-tight">{a.desc}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Submission history */}

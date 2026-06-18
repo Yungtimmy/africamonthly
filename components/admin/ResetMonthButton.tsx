@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { RotateCcw, AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export function ResetMonthButton() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [done, setDone] = useState(false)
@@ -15,10 +17,14 @@ export function ResetMonthButton() {
       const res = await fetch('/api/admin/reset-month', { method: 'POST' })
       if (res.ok) {
         setDone(true)
+        // Refresh the server-rendered dashboard so the stat cards update
+        router.refresh()
         setTimeout(() => {
           setOpen(false)
           setDone(false)
         }, 2000)
+      } else {
+        alert('Failed to reset month. Please try again.')
       }
     } finally {
       setResetting(false)

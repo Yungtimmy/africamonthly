@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, ToggleLeft, ToggleRight, Trash2, Zap } from 'lucide-react'
+import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
@@ -67,6 +67,7 @@ function OEmbedPreview({ url }: { url: string }) {
 export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState(initialTasks)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [taskType, setTaskType] = useState<'x_post' | 'other_event'>('other_event')
   const [form, setForm] = useState({ title: '', description: '', points: '' })
   const [xUrl, setXUrl] = useState('')
@@ -78,6 +79,23 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     setXUrl('')
     setXActions([])
     setTaskType('other_event')
+    setEditingId(null)
+  }
+
+  function startCreate() {
+    resetForm()
+    setShowForm(true)
+  }
+
+  function startEdit(task: Task) {
+    setEditingId(task.id)
+    const isX = task.task_type === 'x_post'
+    setTaskType(isX ? 'x_post' : 'other_event')
+    setForm({ title: task.title ?? '', description: task.description ?? '', points: String(task.points ?? '') })
+    setXUrl(task.x_post_url ?? '')
+    setXActions((task.x_actions as XAction[]) ?? [])
+    setShowForm(true)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function toggleAction(action: XAction) {
@@ -88,7 +106,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
 
   const totalPoints = xActions.reduce((sum, a) => sum + X_ACTION_POINTS[a], 0)
 
-  async function handleCreate(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
@@ -97,16 +115,36 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           ? { task_type: 'x_post', x_post_url: xUrl, x_actions: xActions }
           : { task_type: 'other_event', ...form }
 
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (res.ok) {
-        const task = await res.json() as Task
-        setTasks((prev) => [task, ...prev])
-        resetForm()
-        setShowForm(false)
+      if (editingId) {
+        const res = await fetch(`/api/tasks/${editingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          const updated = await res.json() as Task
+          setTasks((prev) => prev.map((t) => (t.id === editingId ? { ...t, ...updated } : t)))
+          resetForm()
+          setShowForm(false)
+        } else {
+          const data = await res.json().catch(() => ({}))
+          alert(data.error ?? 'Failed to update task')
+        }
+      } else {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          const task = await res.json() as Task
+          setTasks((prev) => [task, ...prev])
+          resetForm()
+          setShowForm(false)
+        } else {
+          const data = await res.json().catch(() => ({}))
+          alert(data.error ?? 'Failed to create task')
+        }
       }
     } finally {
       setSubmitting(false)
@@ -127,52 +165,61 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this task?')) return
+    if (!confirm('Delete this task? This cannot be undone.')) return
     const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== id))
+    if (res.ok) {
+      setTasks((prev) => prev.filter((t) => t.id !== id))
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error ?? 'Failed to delete task')
+    }
   }
 
   const inputClass =
     'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
 
+  const isEditing = !!editingId
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <p className="text-white/30 text-sm">{tasks.length} tasks total</p>
-        <Button size="sm" onClick={() => { resetForm(); setShowForm((v) => !v) }}>
+        <Button size="sm" onClick={() => (showForm && !isEditing ? setShowForm(false) : startCreate())}>
           <Plus size={16} /> Add Task
         </Button>
       </div>
 
       {showForm && (
         <form
-          onSubmit={handleCreate}
+          onSubmit={handleSubmit}
           className="bg-white/3 border border-white/8 rounded-2xl p-6 space-y-5 backdrop-blur-sm"
         >
-          <h3 className="font-serif text-lg font-semibold text-white">New Task</h3>
+          <h3 className="font-serif text-lg font-semibold text-white">{isEditing ? 'Edit Task' : 'New Task'}</h3>
 
-          {/* Task type toggle */}
-          <div>
-            <label className="block text-sm text-white/40 mb-2">Task Type</label>
-            <div className="flex gap-2">
-              {(['other_event', 'x_post'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setTaskType(type)}
-                  className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all ${
-                    taskType === type
-                      ? type === 'x_post'
-                        ? 'bg-[#00D4FF]/10 border-[#00D4FF]/50 text-[#00D4FF]'
-                        : 'bg-[#D4A017]/10 border-[#D4A017]/50 text-[#D4A017]'
-                      : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
-                  }`}
-                >
-                  {type === 'x_post' ? '𝕏 X Post' : 'Other Event'}
-                </button>
-              ))}
+          {/* Task type toggle — only when creating (type is fixed once created) */}
+          {!isEditing && (
+            <div>
+              <label className="block text-sm text-white/40 mb-2">Task Type</label>
+              <div className="flex gap-2">
+                {(['other_event', 'x_post'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setTaskType(type)}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all ${
+                      taskType === type
+                        ? type === 'x_post'
+                          ? 'bg-[#00D4FF]/10 border-[#00D4FF]/50 text-[#00D4FF]'
+                          : 'bg-[#D4A017]/10 border-[#D4A017]/50 text-[#D4A017]'
+                        : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                    }`}
+                  >
+                    {type === 'x_post' ? '𝕏 X Post' : 'Other Event'}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {taskType === 'x_post' ? (
             <>
@@ -283,14 +330,14 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
               size="sm"
               disabled={submitting || (taskType === 'x_post' && (!xUrl || xActions.length === 0))}
             >
-              {submitting ? 'Creating...' : 'Create Task'}
+              {submitting ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Task')}
             </Button>
           </div>
         </form>
       )}
 
       <div className="space-y-3">
-        {tasks.filter((t) => t.is_active !== false).map((task) => {
+        {tasks.map((task) => {
           const active = task.is_active ?? true
           const isXPost = task.task_type === 'x_post'
           return (
@@ -320,14 +367,23 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
+                  onClick={() => startEdit(task)}
+                  className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
+                  title="Edit task"
+                >
+                  <Pencil size={16} />
+                </button>
+                <button
                   onClick={() => handleToggle(task.id, active)}
                   className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
+                  title={active ? 'Deactivate' : 'Activate'}
                 >
                   {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                 </button>
                 <button
                   onClick={() => handleDelete(task.id)}
                   className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+                  title="Delete task"
                 >
                   <Trash2 size={16} />
                 </button>

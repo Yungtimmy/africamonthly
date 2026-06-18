@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, CheckSquare, ListTodo, Users } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, ListTodo, Users, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/submissions', label: 'Submissions', icon: CheckSquare },
   { href: '/admin/tasks', label: 'Tasks', icon: ListTodo },
   { href: '/admin/users', label: 'Users', icon: Users },

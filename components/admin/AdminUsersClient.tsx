@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Search, Zap, X } from 'lucide-react'
+import { Search, Zap, X, MessageCircle, Wallet, Copy, Check } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { formatPoints } from '@/lib/utils'
@@ -12,6 +12,54 @@ interface User {
   discord_avatar?: string
   total_points: number
   monthly_points: number
+  twitter?: string | null
+  wallet_address?: string | null
+  telegram_id?: string | null
+  telegram_username?: string | null
+}
+
+function short(addr: string, head = 6, tail = 4): string {
+  if (addr.length <= head + tail + 1) return addr
+  return `${addr.slice(0, head)}…${addr.slice(-tail)}`
+}
+
+function CopyChip({ icon, label, value, copyValue, accent }: { icon: React.ReactNode; label: string; value: string; copyValue?: string; accent: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        navigator.clipboard?.writeText(copyValue ?? value)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      }}
+      title={`${label}: ${copyValue ?? value} (click to copy)`}
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/4 border border-white/8 text-[11px] text-white/50 hover:text-white hover:border-white/20 transition-all max-w-[200px]"
+    >
+      <span className={accent}>{icon}</span>
+      <span className="truncate">{value}</span>
+      {copied ? <Check size={10} className="text-emerald-400 shrink-0" /> : <Copy size={10} className="opacity-0 group-hover:opacity-40 shrink-0" />}
+    </button>
+  )
+}
+
+function ConnectionChips({ user }: { user: User }) {
+  const telegram = user.telegram_username || (user.telegram_id ? `ID ${user.telegram_id}` : null)
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+      <CopyChip icon={<span className="text-[11px] font-bold leading-none">D</span>} label="Discord" value={user.discord_username} accent="text-[#5865F2]" />
+      {user.twitter
+        ? <CopyChip icon={<span className="text-[11px] font-bold leading-none">𝕏</span>} label="X" value={user.twitter.startsWith('@') ? user.twitter : `@${user.twitter}`} accent="text-white" />
+        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20">𝕏 —</span>}
+      {telegram
+        ? <CopyChip icon={<MessageCircle size={11} />} label="Telegram" value={telegram} accent="text-[#00D4FF]" />
+        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20"><MessageCircle size={11} /> —</span>}
+      {user.wallet_address
+        ? <CopyChip icon={<Wallet size={11} />} label="Wallet" value={short(user.wallet_address)} copyValue={user.wallet_address} accent="text-[#D4A017]" />
+        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20"><Wallet size={11} /> —</span>}
+    </div>
+  )
 }
 
 export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] }) {
@@ -106,15 +154,18 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
           <div
             key={user.id}
             onClick={() => openModal(user)}
-            className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-5 py-4 cursor-pointer transition-all hover:border-[#D4A017]/40 hover:bg-[#D4A017]/5 group"
+            className="flex items-start gap-4 bg-white/3 border border-white/8 rounded-xl px-5 py-4 cursor-pointer transition-all hover:border-[#D4A017]/40 hover:bg-[#D4A017]/5 group"
           >
             <Avatar src={user.discord_avatar} name={user.discord_username} size="sm" />
-            <span className="flex-1 font-medium text-white">{user.discord_username}</span>
-            <div className="text-right text-sm">
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-white">{user.discord_username}</span>
+              <ConnectionChips user={user} />
+            </div>
+            <div className="text-right text-sm shrink-0">
               <p className="text-[#D4A017] font-bold">{formatPoints(user.monthly_points)} pts</p>
               <p className="text-white/30 text-xs">{formatPoints(user.total_points)} total</p>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/20 text-xs font-semibold text-[#D4A017] opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/20 text-xs font-semibold text-[#D4A017] opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center">
               <Zap size={12} /> <span className="hidden sm:inline">Grant Points</span>
             </div>
           </div>
@@ -132,15 +183,16 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/50 to-transparent" />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-start gap-3 min-w-0">
                 <Avatar src={selectedUser.discord_avatar} name={selectedUser.discord_username} size="sm" />
-                <div>
-                  <h3 className="font-serif text-lg font-semibold text-white">{selectedUser.discord_username}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-serif text-lg font-semibold text-white truncate">{selectedUser.discord_username}</h3>
                   <p className="text-xs text-white/30">{formatPoints(selectedUser.monthly_points)} pts this month</p>
+                  <ConnectionChips user={selectedUser} />
                 </div>
               </div>
-              <button onClick={closeModal} className="text-white/30 hover:text-white transition-colors p-1">
+              <button onClick={closeModal} className="text-white/30 hover:text-white transition-colors p-1 shrink-0">
                 <X size={18} />
               </button>
             </div>

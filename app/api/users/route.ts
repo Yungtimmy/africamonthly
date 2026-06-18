@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, discord_username, discord_avatar, monthly_points, total_points')
+    .select('id, discord_username, discord_avatar, monthly_points, total_points, twitter, wallet_address, telegram_id, telegram_username')
     .ilike('discord_username', `%${q}%`)
     .order('monthly_points', { ascending: false })
     .limit(20)
