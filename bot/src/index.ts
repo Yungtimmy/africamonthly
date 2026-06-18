@@ -25,6 +25,12 @@ async function sendMessage(chatId: number | string, text: string) {
   await api('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML' })
 }
 
+// Escape user-controlled text before interpolating into parse_mode: 'HTML'
+// messages, so names containing <, > or & can't break or distort the output.
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 async function isGroupAdmin(chatId: number | string, userId: number | string): Promise<boolean> {
   try {
     const data = await api<{ result?: { status: string } }>('getChatMember', {
@@ -63,7 +69,7 @@ async function handleStatsCommand(chatId: number | string, args: string) {
     }
 
     if (!user) {
-      await sendMessage(chatId, `❌ User <b>${target}</b> not found or hasn't signed up yet.`)
+      await sendMessage(chatId, `❌ User <b>${esc(target)}</b> not found or hasn't signed up yet.`)
       return
     }
 
@@ -76,7 +82,7 @@ async function handleStatsCommand(chatId: number | string, args: string) {
     const telegramPts = Math.floor((user.telegram_chat_count ?? 0) / 10)
 
     await sendMessage(chatId,
-      `👤 <b>${user.discord_username}</b>\n` +
+      `👤 <b>${esc(user.discord_username)}</b>\n` +
       `🏆 Rank: <b>#${rank}</b>\n` +
       `⚡ Monthly Points: <b>${user.monthly_points}</b>\n` +
       `📊 All-time Points: <b>${user.total_points}</b>\n` +
@@ -97,7 +103,7 @@ async function handleStatsCommand(chatId: number | string, args: string) {
     const medals = ['🥇', '🥈', '🥉']
     const lines = users.map((u, i) => {
       const medal = medals[i] ?? `${i + 1}.`
-      return `${medal} <b>${u.discord_username}</b> — ${u.monthly_points} pts`
+      return `${medal} <b>${esc(u.discord_username)}</b> — ${u.monthly_points} pts`
     })
 
     await sendMessage(chatId,
