@@ -5,10 +5,24 @@ primary_region = "fra"
 
 [env]
   NODE_ENV = "production"
+  PORT = "8080"
 
-# No [[services]] / [http_service] — this is a background worker (long-polling),
-# it has no inbound HTTP. Without a services block Fly will NOT autostop it,
-# so the single machine stays running 24/7.
+# HTTP service exists ONLY to expose /health for uptime monitoring.
+# auto_stop_machines = false + min_machines_running = 1 keep the long-polling
+# worker running 24/7 — Fly must never stop it just because HTTP is idle.
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
 
 # Always restart the worker if it ever exits or crashes
 [[restart]]

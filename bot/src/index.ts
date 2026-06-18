@@ -1,3 +1,4 @@
+import { createServer } from 'http'
 import { processTelegramMessage } from './telegram.js'
 import { supabase } from './supabase.js'
 
@@ -215,6 +216,8 @@ async function poll() {
         allowed_updates: ['message'],
       })
 
+      lastPollAt = Date.now()
+
       if (res.ok && res.result.length > 0) {
         for (const update of res.result) {
           offset = update.update_id + 1
@@ -237,5 +240,34 @@ async function poll() {
     }
   }
 }
+
+// Track when the last successful Telegram poll completed, so the health
+// endpoint can report whether the bot is actually polling (not just running).
+let lastPollAt = Date.now()
+
+// Lightweight HTTP server for uptime monitoring. An external monitor
+// (e.g. UptimeRobot) pings /health; if the bot crashes the check fails and
+// Fly restarts the machine. Healthy only if a poll completed recently.
+const PORT = Number(process.env.PORT ?? 8080)
+createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/') {
+    const sinceLastPoll = Date.now() - lastPollAt
+    const healthy = sinceLastPoll < 90_000 // long-poll is 30s; 90s = stalled
+    res.writeHead(healthy ? 200 : 503, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({
+      status: healthy ? 'ok' : 'stalled',
+      uptimeSeconds: Math.round(process.uptime()),
+      sinceLastPollMs: sinceLastPoll,
+    }))
+  } else {
+    res.writeHead(404)
+    res.end()
+  }
+}).listen(PORT, () => console.log(`🩺 Health server listening on :${PORT}`))
+
+// Heartbeat so logs confirm the process is alive even when the group is quiet.
+setInterval(() => {
+  console.log(`[heartbeat] alive — uptime ${Math.round(process.uptime())}s`)
+}, 5 * 60 * 1000)
 
 poll()
