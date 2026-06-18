@@ -10,6 +10,10 @@ primary_region = "fra"
 # it has no inbound HTTP. Without a services block Fly will NOT autostop it,
 # so the single machine stays running 24/7.
 
+# Always restart the worker if it ever exits or crashes
+[restart]
+  policy = "always"
+
 [[vm]]
   memory = "256mb"
   cpu_kind = "shared"
