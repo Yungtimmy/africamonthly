@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { redirect } from 'next/navigation'
 import { Trophy, CheckCircle, TrendingUp, DollarSign, ArrowRight, Zap, Users, Target, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/Avatar'
 import { getDaysUntilEndOfMonth, getCurrentMonthLabel, formatPoints } from '@/lib/utils'
+import { auth } from '@/lib/auth'
 
 async function getTopUsers() {
   try {
@@ -20,6 +22,9 @@ async function getTopUsers() {
 }
 
 export default async function HomePage() {
+  const session = await auth()
+  if (session?.user) redirect('/tasks')
+
   const topUsers = await getTopUsers()
   const daysLeft = getDaysUntilEndOfMonth()
   const monthLabel = getCurrentMonthLabel()
