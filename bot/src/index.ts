@@ -128,6 +128,8 @@ async function handleMessage(message: TelegramMessage) {
   const telegramId = String(from.id)
   const text = message.text ?? ''
 
+  console.log(`[recv] chat=${chatId} type=${message.chat.type} from=${telegramId} text=${JSON.stringify(text.slice(0, 40))}`)
+
   // /ping — works anywhere
   if (text.startsWith('/ping')) {
     await sendMessage(chatId,
@@ -155,7 +157,10 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   // All other commands and messages: group-only
-  if (ALLOWED_GROUP_ID && String(chatId) !== ALLOWED_GROUP_ID) return
+  if (ALLOWED_GROUP_ID && String(chatId) !== ALLOWED_GROUP_ID) {
+    console.log(`[skip] chat ${chatId} does not match TELEGRAM_GROUP_ID ${ALLOWED_GROUP_ID}`)
+    return
+  }
 
   // /stats (admin only)
   if (text.startsWith('/stats')) {
@@ -177,6 +182,7 @@ async function handleMessage(message: TelegramMessage) {
     ? `@${from.username}`
     : [from.first_name, from.last_name].filter(Boolean).join(' ')
 
+  console.log(`[track] ${displayName} (${telegramId})`)
   await processTelegramMessage(telegramId, displayName)
 }
 
