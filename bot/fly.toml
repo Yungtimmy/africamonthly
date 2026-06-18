@@ -11,7 +11,7 @@ primary_region = "fra"
 # so the single machine stays running 24/7.
 
 # Always restart the worker if it ever exits or crashes
-[restart]
+[[restart]]
   policy = "always"
 
 [[vm]]
