@@ -21,16 +21,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { data: targetUser } = await supabase
     .from('users')
-    .select('total_points, monthly_points')
+    .select('id')
     .eq('id', id)
     .single()
 
   if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  await supabase.from('users').update({
-    total_points: targetUser.total_points + pts,
-    monthly_points: targetUser.monthly_points + pts,
-  }).eq('id', id)
+  // Increment atomically to avoid lost updates under concurrent awards
+  await supabase.rpc('increment_user_points', { p_user_id: id, p_delta: pts })
 
   await supabase.from('point_grants').insert({
     user_id: id,

@@ -40,19 +40,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       reviewed_at: now,
     }).eq('id', id)
 
-    // Increment user points
-    const { data: user } = await supabase
-      .from('users')
-      .select('total_points, monthly_points')
-      .eq('id', submission.user_id)
-      .single()
-
-    if (user) {
-      await supabase.from('users').update({
-        total_points: user.total_points + points,
-        monthly_points: user.monthly_points + points,
-      }).eq('id', submission.user_id)
-    }
+    // Increment user points atomically (avoids lost updates under concurrency)
+    await supabase.rpc('increment_user_points', {
+      p_user_id: submission.user_id,
+      p_delta: points,
+    })
   } else {
     await supabase.from('submissions').update({
       status: 'rejected',

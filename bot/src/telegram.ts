@@ -49,22 +49,14 @@ export async function processTelegramMessage(telegramId: string, displayName: st
     }).eq('telegram_id', telegramId)
     if (ptsErr) console.error('[supabase] update points_awarded failed:', ptsErr.message)
 
-    const { data: user, error: userErr } = await supabase
-      .from('users')
-      .select('id, total_points, monthly_points')
-      .eq('telegram_id', telegramId)
-      .maybeSingle()
-    if (userErr) console.error('[supabase] select user failed:', userErr.message)
-
-    if (user) {
-      const { error: updErr } = await supabase.from('users').update({
-        total_points: user.total_points + delta,
-        monthly_points: user.monthly_points + delta,
-        telegram_chat_count: messageCount,
-      }).eq('id', user.id)
-      if (updErr) console.error('[supabase] update user points failed:', updErr.message)
-
-      console.log(`[points] +${delta} pts → ${displayName} (${messageCount} msgs, ${newPointsTotal} pts total)`)
-    }
+    // Award atomically by telegram_id (no-ops if no linked user). Avoids lost
+    // updates when an admin awards points to the same user concurrently.
+    const { error: rpcErr } = await supabase.rpc('apply_telegram_points', {
+      p_telegram_id: telegramId,
+      p_delta: delta,
+      p_chat_count: messageCount,
+    })
+    if (rpcErr) console.error('[supabase] apply_telegram_points failed:', rpcErr.message)
+    else console.log(`[points] +${delta} pts → ${displayName} (${messageCount} msgs, ${newPointsTotal} pts total)`)
   }
 }
