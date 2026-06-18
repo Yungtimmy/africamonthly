@@ -38,7 +38,6 @@ interface ProfileClientProps {
 const inputClass = 'w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all duration-200'
 
 export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
-  const [telegramId, setTelegramId] = useState(user.telegramId ?? '')
   const [telegramConnected, setTelegramConnected] = useState(!!user.telegramId)
   const [telegramName, setTelegramName] = useState<string | undefined>(undefined)
   const [twitter, setTwitter] = useState(user.twitter ?? '')
@@ -72,7 +71,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegramId, twitter, wallet }),
+        body: JSON.stringify({ twitter, wallet }),
       })
       if (res.ok) {
         setSaved(true)
@@ -171,9 +170,11 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
                   })
                   if (res.ok) {
                     const data = await res.json()
-                    setTelegramId(data.telegramId)
                     setTelegramConnected(true)
                     setTelegramName(data.displayName)
+                  } else {
+                    const data = await res.json().catch(() => ({}))
+                    setError(data.error ?? 'Failed to connect Telegram. Please try again.')
                   }
                 }}
               />

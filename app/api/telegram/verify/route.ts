@@ -28,6 +28,20 @@ export async function POST(req: Request) {
   const telegramId = String(data.id)
   const displayName = data.username ? `@${data.username}` : data.first_name
 
+  // Don't let one Telegram account be linked to two different profiles
+  const { data: clash } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .maybeSingle()
+
+  if (clash && clash.id !== session.user.id) {
+    return NextResponse.json(
+      { error: 'This Telegram account is already linked to another profile.' },
+      { status: 409 }
+    )
+  }
+
   await supabase.from('users').update({
     telegram_id: telegramId,
   }).eq('id', session.user.id)
