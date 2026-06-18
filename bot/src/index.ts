@@ -156,6 +156,12 @@ async function handleMessage(message: TelegramMessage) {
     return
   }
 
+  // /leaderboard — public, shows the top 10 (works in DMs and groups)
+  if (text.startsWith('/leaderboard')) {
+    await handleStatsCommand(chatId, '')
+    return
+  }
+
   // All other commands and messages: group-only
   if (ALLOWED_GROUP_ID && String(chatId) !== ALLOWED_GROUP_ID) {
     console.log(`[skip] chat ${chatId} does not match TELEGRAM_GROUP_ID ${ALLOWED_GROUP_ID}`)
