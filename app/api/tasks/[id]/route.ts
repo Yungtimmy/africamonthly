@@ -52,14 +52,38 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params
 
-  const { error } = await supabase.from('tasks').delete().eq('id', id)
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('is_active')
+    .eq('id', id)
+    .single()
 
-  if (error) {
-    // Most likely a foreign-key violation: submissions still reference this task.
+  if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+
+  const { count: submissionCount } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('task_id', id)
+
+  // Safety: a task with submissions must be deactivated before deletion, so it
+  // can't be removed while users are actively submitting to it.
+  if ((submissionCount ?? 0) > 0 && task.is_active) {
     return NextResponse.json(
-      { error: 'Cannot delete a task that has submissions. Deactivate it instead.' },
+      { error: 'Deactivate this task before deleting it.' },
       { status: 409 }
     )
   }
+
+  // Remove the task's submission records first (FK), then the task itself.
+  // NOTE: points already awarded live on each user's row and are NOT affected —
+  // this only clears the submission history for this task.
+  if ((submissionCount ?? 0) > 0) {
+    const { error: subErr } = await supabase.from('submissions').delete().eq('task_id', id)
+    if (subErr) return NextResponse.json({ error: subErr.message }, { status: 500 })
+  }
+
+  const { error } = await supabase.from('tasks').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
   return NextResponse.json({ success: true })
 }

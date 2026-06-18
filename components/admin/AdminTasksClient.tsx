@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap } from 'lucide-react'
+import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
@@ -73,6 +73,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [xUrl, setXUrl] = useState('')
   const [xActions, setXActions] = useState<XAction[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [showInactive, setShowInactive] = useState(false)
 
   function resetForm() {
     setForm({ title: '', description: '', points: '' })
@@ -165,7 +166,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this task? This cannot be undone.')) return
+    if (!confirm('Delete this task? Its submission history will be removed. Users keep all points they already earned. This cannot be undone.')) return
     const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
     if (res.ok) {
       setTasks((prev) => prev.filter((t) => t.id !== id))
@@ -179,6 +180,64 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
 
   const isEditing = !!editingId
+
+  const activeTasks = tasks.filter((t) => (t.is_active ?? true))
+  const inactiveTasks = tasks.filter((t) => !(t.is_active ?? true))
+
+  function renderRow(task: Task) {
+    const active = task.is_active ?? true
+    const isXPost = task.task_type === 'x_post'
+    return (
+      <div
+        key={task.id}
+        className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
+          active ? 'border-white/8' : 'border-white/5 opacity-60'
+        }`}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {isXPost && <span className="font-bold text-white">𝕏</span>}
+            <h3 className="font-medium text-white truncate">
+              {isXPost ? (task.x_post_url ?? task.title) : task.title}
+            </h3>
+            <Badge variant="points">+{task.points}</Badge>
+            {isXPost && task.x_actions && task.x_actions.map((a) => (
+              <span key={a} className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
+                {a}
+              </span>
+            ))}
+            {!active && <Badge>Inactive</Badge>}
+          </div>
+          {!isXPost && task.description && (
+            <p className="text-sm text-white/30 mt-1">{task.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => startEdit(task)}
+            className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
+            title="Edit task"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            onClick={() => handleToggle(task.id, active)}
+            className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
+            title={active ? 'Deactivate' : 'Activate'}
+          >
+            {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+          </button>
+          <button
+            onClick={() => handleDelete(task.id)}
+            className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+            title="Delete task"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -337,64 +396,31 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
       )}
 
       <div className="space-y-3">
-        {tasks.map((task) => {
-          const active = task.is_active ?? true
-          const isXPost = task.task_type === 'x_post'
-          return (
-            <div
-              key={task.id}
-              className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
-                active ? 'border-white/8' : 'border-white/5 opacity-50'
-              }`}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {isXPost && <span className="font-bold text-white">𝕏</span>}
-                  <h3 className="font-medium text-white truncate">
-                    {isXPost ? (task.x_post_url ?? task.title) : task.title}
-                  </h3>
-                  <Badge variant="points">+{task.points}</Badge>
-                  {isXPost && task.x_actions && task.x_actions.map((a) => (
-                    <span key={a} className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                      {a}
-                    </span>
-                  ))}
-                  {!active && <Badge>Inactive</Badge>}
-                </div>
-                {!isXPost && task.description && (
-                  <p className="text-sm text-white/30 mt-1">{task.description}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => startEdit(task)}
-                  className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
-                  title="Edit task"
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  onClick={() => handleToggle(task.id, active)}
-                  className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
-                  title={active ? 'Deactivate' : 'Activate'}
-                >
-                  {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                </button>
-                <button
-                  onClick={() => handleDelete(task.id)}
-                  className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
-                  title="Delete task"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          )
-        })}
+        {activeTasks.map(renderRow)}
         {tasks.length === 0 && (
           <p className="text-center text-white/20 py-8 text-sm">No tasks yet. Create one above.</p>
         )}
+        {tasks.length > 0 && activeTasks.length === 0 && (
+          <p className="text-center text-white/20 py-8 text-sm">No active tasks. Create one or reactivate below.</p>
+        )}
       </div>
+
+      {inactiveTasks.length > 0 && (
+        <div className="pt-2">
+          <button
+            onClick={() => setShowInactive((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-white/30 hover:text-white/60 transition-colors"
+          >
+            {showInactive ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            Deactivated ({inactiveTasks.length})
+          </button>
+          {showInactive && (
+            <div className="space-y-3 mt-3">
+              {inactiveTasks.map(renderRow)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
