@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/tasks', label: 'Tasks' },
+  { href: '/', label: 'Home', authOnly: false, hideWhenAuthed: true },
+  { href: '/leaderboard', label: 'Leaderboard', authOnly: false, hideWhenAuthed: false },
+  { href: '/tasks', label: 'Tasks', authOnly: false, hideWhenAuthed: false },
 ]
 
 export function Navbar() {
@@ -41,7 +41,7 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1 flex-1">
-            {navLinks.map((link) => (
+            {navLinks.filter(link => !(link.hideWhenAuthed && session?.user)).map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -157,7 +157,7 @@ export function Navbar() {
           </button>
         </div>
         <div className="p-4 space-y-1">
-          {navLinks.map((link) => (
+          {navLinks.filter(link => !(link.hideWhenAuthed && session?.user)).map((link) => (
             <Link
               key={link.href}
               href={link.href}
