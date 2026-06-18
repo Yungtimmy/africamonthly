@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createHmac } from 'crypto'
+import { createHash, createHmac } from 'crypto'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { supabase } from '@/lib/supabase'
@@ -11,9 +11,10 @@ export async function POST(req: Request) {
   const body = await req.json()
   const { hash, ...data } = body
 
-  // Verify with bot token
+  // Verify with bot token — Login Widget uses secret = SHA256(bot_token),
+  // NOT HMAC-SHA256(bot_token, "WebAppData") which is for Web App initData.
   const botToken = process.env.TELEGRAM_BOT_TOKEN!
-  const secret = createHmac('sha256', 'WebAppData').update(botToken).digest()
+  const secret = createHash('sha256').update(botToken).digest()
   const checkString = Object.keys(data).sort().map(k => `${k}=${data[k]}`).join('\n')
   const hmac = createHmac('sha256', secret).update(checkString).digest('hex')
 
