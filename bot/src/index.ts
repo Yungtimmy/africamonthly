@@ -193,17 +193,23 @@ async function poll() {
       const res = await api<{ ok: boolean; result: TelegramUpdate[] }>('getUpdates', {
         offset,
         timeout: 30,
-        allowed_updates: ['message', 'edited_message'],
+        // Only real new messages count toward chats — not edits
+        allowed_updates: ['message'],
       })
 
       if (res.ok && res.result.length > 0) {
         for (const update of res.result) {
           offset = update.update_id + 1
-          const message = update.message ?? update.edited_message
+          const message = update.message
           if (message) {
-            handleMessage(message).catch((err) =>
+            // Process serially: the message-count read/increment is not
+            // atomic, so concurrent handling of two messages from the same
+            // user would lose an increment (undercount). Awaiting avoids that.
+            try {
+              await handleMessage(message)
+            } catch (err) {
               console.error('Error handling message:', err)
-            )
+            }
           }
         }
       }
