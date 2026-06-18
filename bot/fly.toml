@@ -6,16 +6,9 @@ primary_region = "fra"
 [env]
   NODE_ENV = "production"
 
-[[services]]
-  # No HTTP — pure long-polling bot, no inbound traffic needed
-  internal_port = 3000
-  protocol = "tcp"
-  auto_stop_machines = false
-  auto_start_machines = true
-  min_machines_running = 1
-
-[checks]
-  # Fly restarts the machine if it crashes — min_machines_running = 1 ensures always-on
+# No [[services]] / [http_service] — this is a background worker (long-polling),
+# it has no inbound HTTP. Without a services block Fly will NOT autostop it,
+# so the single machine stays running 24/7.
 
 [[vm]]
   memory = "256mb"
