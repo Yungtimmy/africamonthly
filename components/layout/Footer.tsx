@@ -75,7 +75,7 @@ export function Footer() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#00D4FF] font-bold shrink-0 leading-snug">→</span>
-                  Chat on Telegram (10 msgs = 1 pt)
+                  Weekly community activity (awarded by admins)
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D4A017] font-bold shrink-0 leading-snug">→</span>

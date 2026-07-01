@@ -1,19 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatPoints, formatRelativeTime } from '@/lib/utils'
-import {
-  TELEGRAM_MONTHLY_POINTS_CAP,
-  isTelegramPointsCapped,
-  telegramPointsFromMessages,
-} from '@/lib/points'
-import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash, Sparkles, Flame, Crown, CheckCircle2, Medal, Lock, Award } from 'lucide-react'
+import { ExternalLink, Wallet, Trophy, TrendingUp, Hash, Sparkles, Flame, Crown, CheckCircle2, Medal, Lock, Award } from 'lucide-react'
 import { KeplrConnect } from './KeplrConnect'
-import { TelegramLogin } from './TelegramLogin'
 
 interface Submission {
   id: string
@@ -29,9 +22,6 @@ interface ProfileClientProps {
     id: string
     discordUsername: string
     discordAvatar?: string
-    telegramId?: string
-    telegramChatCount: number
-    twitter?: string
     walletAddress?: string
     totalPoints: number
     monthlyPoints: number
@@ -40,33 +30,11 @@ interface ProfileClientProps {
   rank: number
 }
 
-const inputClass = 'w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all duration-200'
-
 export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
-  const [telegramConnected, setTelegramConnected] = useState(!!user.telegramId)
-  const [telegramName, setTelegramName] = useState<string | undefined>(undefined)
-  const [twitter, setTwitter] = useState(user.twitter ?? '')
-  const [twitterConnected, setTwitterConnected] = useState(!!user.twitter)
   const [wallet, setWallet] = useState(user.walletAddress ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const searchParams = useSearchParams()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (searchParams.get('twitter') === 'connected') {
-      setTwitterConnected(true)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-      router.replace('/profile')
-    }
-    if (searchParams.get('error')?.startsWith('twitter')) {
-      setError('Failed to connect X account. Please try again.')
-      router.replace('/profile')
-    }
-  }, [searchParams, router])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -76,7 +44,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ twitter, wallet }),
+        body: JSON.stringify({ wallet }),
       })
       if (res.ok) {
         setSaved(true)
@@ -90,11 +58,6 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
     }
   }
 
-  const chatCount = user.telegramChatCount ?? 0
-  const telegramPoints = telegramPointsFromMessages(chatCount)
-  const atCap = isTelegramPointsCapped(chatCount)
-  const nextPointIn = atCap ? 0 : 10 - (chatCount % 10)
-
   const approvedCount = submissions.filter((s) => s.status === 'approved').length
 
   const achievements = [
@@ -103,7 +66,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
     { icon: Trophy, label: 'Centurion', desc: 'Reach 100 all-time points', unlocked: user.totalPoints >= 100, color: 'text-[#D4A017]' },
     { icon: Flame, label: 'High Roller', desc: 'Reach 500 all-time points', unlocked: user.totalPoints >= 500, color: 'text-orange-400' },
     { icon: Crown, label: 'Legend', desc: 'Reach 1,000 all-time points', unlocked: user.totalPoints >= 1000, color: 'text-[#D4A017]' },
-    { icon: MessageCircle, label: 'Chatterbox', desc: 'Send 100 Telegram messages', unlocked: chatCount >= 100, color: 'text-[#00D4FF]' },
+    { icon: TrendingUp, label: 'Monthly Momentum', desc: 'Earn 25 points this month', unlocked: user.monthlyPoints >= 25, color: 'text-[#00D4FF]' },
     { icon: CheckCircle2, label: 'Task Master', desc: 'Get 5 tasks approved', unlocked: approvedCount >= 5, color: 'text-emerald-400' },
     { icon: Medal, label: 'Podium Finish', desc: 'Rank in the top 3', unlocked: rank <= 3, color: 'text-[#D4A017]' },
   ]
@@ -147,89 +110,12 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
           ))}
         </div>
 
-        {/* Telegram tracker */}
-        {user.telegramId && (
-          <div className="rounded-2xl p-5 flex items-center gap-4 bg-white/3 border border-white/8 backdrop-blur-sm">
-            <div className="w-11 h-11 rounded-xl bg-[#00D4FF]/10 border border-[#00D4FF]/20 flex items-center justify-center shrink-0">
-              <MessageCircle className="text-[#00D4FF] w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-white">Telegram Activity</p>
-              <p className="text-xs text-white/30 mt-0.5">
-                {chatCount} messages →{' '}
-                <span className="text-[#00D4FF]">
-                  {telegramPoints}/{TELEGRAM_MONTHLY_POINTS_CAP} points earned
-                </span>
-              </p>
-              <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#00D4FF] rounded-full transition-all shadow-[0_0_6px_rgba(0,212,255,0.6)]"
-                  style={{
-                    width: atCap
-                      ? '100%'
-                      : `${Math.min(100, (chatCount % 10) * 10)}%`,
-                  }}
-                />
-              </div>
-              <p className="text-xs text-white/20 mt-1">
-                {atCap
-                  ? `Monthly cap reached (${TELEGRAM_MONTHLY_POINTS_CAP} pts). Resets next month.`
-                  : `${nextPointIn} more message${nextPointIn !== 1 ? 's' : ''} until next point`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Connect socials */}
+        {/* Wallet */}
         <div className="rounded-2xl p-7 bg-white/3 border border-white/8 backdrop-blur-sm relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent" />
-          <h2 className="font-serif text-xl font-semibold text-white mb-6">Connect Accounts</h2>
+          <h2 className="font-serif text-xl font-semibold text-white mb-2">Wallet</h2>
+          <p className="text-xs text-white/35 mb-6">Connect your Injective wallet to receive rewards.</p>
           <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
-                <MessageCircle size={13} /> Telegram
-              </label>
-              <TelegramLogin
-                botName={process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME ?? 'YourBotName'}
-                connected={telegramConnected}
-                connectedName={telegramName}
-                onAuth={async (tgUser) => {
-                  const res = await fetch('/api/telegram/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(tgUser),
-                  })
-                  if (res.ok) {
-                    const data = await res.json()
-                    setTelegramConnected(true)
-                    setTelegramName(data.displayName)
-                  } else {
-                    const data = await res.json().catch(() => ({}))
-                    setError(data.error ?? 'Failed to connect Telegram. Please try again.')
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
-                <XIcon size={13} /> X / Twitter
-              </label>
-              {twitterConnected ? (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/4 border border-white/8">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-sm text-white font-medium flex-1">{twitter || 'Connected'}</span>
-                  <a href="/api/auth/twitter/connect" className="text-xs text-white/30 hover:text-[#00D4FF] transition-colors">Reconnect</a>
-                </div>
-              ) : (
-                <a
-                  href="/api/auth/twitter/connect"
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/4 border border-white/8 text-white/50 hover:border-white/20 hover:text-white transition-all text-sm"
-                >
-                  <XIcon size={14} />
-                  Connect X account
-                </a>
-              )}
-            </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
                 <Wallet size={13} /> Wallet address
@@ -238,7 +124,7 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
             <Button type="submit" disabled={saving} variant={saved ? 'outline' : 'primary'} size="sm">
-              {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Accounts'}
+              {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Wallet'}
             </Button>
           </form>
         </div>

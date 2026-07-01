@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Search, Zap, X, MessageCircle, Wallet, Copy, Check } from 'lucide-react'
+import { Search, Zap, X, Wallet, Copy, Check } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { formatPoints } from '@/lib/utils'
@@ -12,10 +12,7 @@ interface User {
   discord_avatar?: string
   total_points: number
   monthly_points: number
-  twitter?: string | null
   wallet_address?: string | null
-  telegram_id?: string | null
-  telegram_username?: string | null
 }
 
 function short(addr: string, head = 6, tail = 4): string {
@@ -45,16 +42,9 @@ function CopyChip({ icon, label, value, copyValue, accent }: { icon: React.React
 }
 
 function ConnectionChips({ user }: { user: User }) {
-  const telegram = user.telegram_username || (user.telegram_id ? `ID ${user.telegram_id}` : null)
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
       <CopyChip icon={<span className="text-[11px] font-bold leading-none">D</span>} label="Discord" value={user.discord_username} accent="text-[#5865F2]" />
-      {user.twitter
-        ? <CopyChip icon={<span className="text-[11px] font-bold leading-none">𝕏</span>} label="X" value={user.twitter.startsWith('@') ? user.twitter : `@${user.twitter}`} accent="text-white" />
-        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20">𝕏 —</span>}
-      {telegram
-        ? <CopyChip icon={<MessageCircle size={11} />} label="Telegram" value={telegram} accent="text-[#00D4FF]" />
-        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20"><MessageCircle size={11} /> —</span>}
       {user.wallet_address
         ? <CopyChip icon={<Wallet size={11} />} label="Wallet" value={short(user.wallet_address)} copyValue={user.wallet_address} accent="text-[#D4A017]" />
         : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20"><Wallet size={11} /> —</span>}
@@ -229,7 +219,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                     type="text"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="e.g. Twitter Space participation"
+                    placeholder="e.g. Weekly Telegram activity — 42 messages"
                     required
                     className={inputClass}
                   />

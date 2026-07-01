@@ -142,7 +142,7 @@ export default async function HomePage() {
           <p className="mt-5 sm:mt-6 text-sm sm:text-lg text-white/45 leading-relaxed max-w-xl mx-auto">
             The African community&apos;s monthly leaderboard on{' '}
             <span className="text-[#00D4FF]/75">Injective</span>.
-            Complete tasks, chat on Telegram, climb the ranks — top 5 win every month.
+            Complete tasks, stay active in the community, climb the ranks — top 5 win every month.
           </p>
 
           {/* CTAs */}
@@ -212,7 +212,7 @@ export default async function HomePage() {
                 iconBg: 'bg-[#00D4FF]/10 border border-[#00D4FF]/20',
                 step: '01',
                 title: 'Connect Discord',
-                desc: 'Sign in with Discord, then link your Telegram, X account, and wallet on your profile page.',
+                desc: 'Sign in with Discord, then add your Injective wallet on your profile page.',
                 accentColor: '#00D4FF',
                 glowClass: 'hover:shadow-[0_0_30px_rgba(0,212,255,0.08)] hover:border-[#00D4FF]/30',
               },
@@ -230,7 +230,7 @@ export default async function HomePage() {
                 iconBg: 'bg-[#00D4FF]/10 border border-[#00D4FF]/20',
                 step: '03',
                 title: 'Climb & Win',
-                desc: 'Stack points from tasks, Telegram chats, spaces, and workshops. Top 5 win every month.',
+                desc: 'Stack points from tasks, weekly community activity, spaces, and workshops. Top 5 win every month.',
                 accentColor: '#00D4FF',
                 glowClass: 'hover:shadow-[0_0_30px_rgba(0,212,255,0.08)] hover:border-[#00D4FF]/30',
               },

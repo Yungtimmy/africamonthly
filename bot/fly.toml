@@ -6,6 +6,7 @@ primary_region = "fra"
 [env]
   NODE_ENV = "production"
   PORT = "8080"
+  BOT_ENABLED = "true"
 
 # HTTP service exists ONLY to expose /health for uptime monitoring.
 # auto_stop_machines = false + min_machines_running = 1 keep the long-polling
@@ -15,7 +16,7 @@ primary_region = "fra"
   force_https = true
   auto_stop_machines = false
   auto_start_machines = false
-  min_machines_running = 1
+  min_machines_running = 0
 
   [[http_service.checks]]
     grace_period = "15s"
