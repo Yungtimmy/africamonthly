@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { telegramPointsFromMessages } from './constants.js'
 
 export async function processTelegramMessage(telegramId: string, displayName: string, telegramUsername?: string) {
   const { data: existing, error: selectErr } = await supabase
@@ -39,7 +40,7 @@ export async function processTelegramMessage(telegramId: string, displayName: st
     if (error) console.error('[supabase] insert telegram_events failed:', error.message)
   }
 
-  const newPointsTotal = Math.floor(messageCount / 10)
+  const newPointsTotal = telegramPointsFromMessages(messageCount)
 
   if (newPointsTotal > previousPointsAwarded) {
     const delta = newPointsTotal - previousPointsAwarded

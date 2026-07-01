@@ -61,6 +61,80 @@ body {
   .text-glow-gold {
     text-shadow: 0 0 20px rgba(212, 160, 23, 0.55);
   }
+
+  .hero-cinematic {
+    background:
+      radial-gradient(ellipse 55% 45% at 50% 38%, rgba(0, 212, 255, 0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 55%, rgba(212, 160, 23, 0.06) 0%, transparent 65%),
+      radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0, 87, 168, 0.18) 0%, transparent 55%),
+      #0A0F1E;
+  }
+
+  .hero-letterbox-top,
+  .hero-letterbox-bottom {
+    background: linear-gradient(to bottom, #000 0%, transparent 100%);
+    height: 3.5vh;
+    min-height: 28px;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .hero-letterbox-bottom {
+    background: linear-gradient(to top, #000 0%, transparent 100%);
+  }
+
+  .hero-film-grain {
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+
+  .hero-spotlight {
+    background: radial-gradient(
+      ellipse 42% 55% at 50% 32%,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(0, 212, 255, 0.06) 25%,
+      transparent 68%
+    );
+  }
+
+  .hero-stage-glow {
+    background: radial-gradient(
+      ellipse 50% 18% at 50% 50%,
+      rgba(0, 212, 255, 0.22) 0%,
+      rgba(0, 212, 255, 0.06) 40%,
+      transparent 72%
+    );
+    filter: blur(20px);
+  }
+
+  .hero-logo-float {
+    animation: heroLogoFloat 7s ease-in-out infinite;
+  }
+
+  .hero-logo-glow {
+    animation: heroLogoGlow 5s ease-in-out infinite;
+  }
+
+  .hero-light-sweep {
+    animation: heroLightSweep 8s ease-in-out infinite;
+  }
+
+  @keyframes heroLogoFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-14px) scale(1.02); }
+  }
+
+  @keyframes heroLogoGlow {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.08); }
+  }
+
+  @keyframes heroLightSweep {
+    0%, 100% { opacity: 0.25; transform: translateX(-8%) skewX(-12deg); }
+    50% { opacity: 0.55; transform: translateX(8%) skewX(-12deg); }
+  }
 }
 
 /* Scrollbar */

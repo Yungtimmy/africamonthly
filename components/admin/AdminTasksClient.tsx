@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { X_ACTION_POINTS, type XAction } from '@/lib/points'
 
 interface Task {
   id: string
@@ -16,14 +17,11 @@ interface Task {
   x_actions?: string[] | null
 }
 
-type XAction = 'like' | 'reply' | 'retweet' | 'quote'
-
-const X_ACTION_POINTS: Record<XAction, number> = { like: 20, reply: 30, retweet: 50, quote: 50 }
 const X_ACTIONS: { value: XAction; label: string; pts: number }[] = [
-  { value: 'like', label: 'Like', pts: 20 },
-  { value: 'reply', label: 'Reply', pts: 30 },
-  { value: 'retweet', label: 'Retweet', pts: 50 },
-  { value: 'quote', label: 'Quote', pts: 50 },
+  { value: 'like', label: 'Like', pts: X_ACTION_POINTS.like },
+  { value: 'reply', label: 'Reply', pts: X_ACTION_POINTS.reply },
+  { value: 'retweet', label: 'Retweet', pts: X_ACTION_POINTS.retweet },
+  { value: 'quote', label: 'Quote', pts: X_ACTION_POINTS.quote },
 ]
 
 function OEmbedPreview({ url }: { url: string }) {

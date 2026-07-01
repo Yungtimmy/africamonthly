@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
-import { Trophy, CheckCircle, TrendingUp, DollarSign, ArrowRight, Zap, Users, Target, Calendar } from 'lucide-react'
+import { Trophy, CheckCircle, DollarSign, ArrowRight, Users, Target, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/Avatar'
@@ -32,140 +32,160 @@ export default async function HomePage() {
   return (
     <div className="relative">
 
-      {/* ── HERO ───────────────────────────────────────────────── */}
-      <section className="relative min-h-[94vh] flex items-center overflow-hidden">
-        {/* Aurora background */}
+      {/* ── CINEMATIC HERO ─────────────────────────────────────── */}
+      <section className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden hero-cinematic">
+        {/* Letterbox bars */}
+        <div className="absolute top-0 inset-x-0 z-20 hero-letterbox-top" />
+        <div className="absolute bottom-0 inset-x-0 z-20 hero-letterbox-bottom" />
+
+        {/* Atmospheric layers */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-[#00D4FF]/6 blur-[140px]" />
-          <div className="absolute top-[20%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-[#0057A8]/12 blur-[120px]" />
-          <div className="absolute bottom-[-10%] left-[30%] w-[40vw] h-[40vw] rounded-full bg-[#D4A017]/5 blur-[100px]" />
-          {/* Grid overlay */}
+          <div className="absolute inset-0 hero-spotlight" />
+          <div className="absolute inset-0 hero-film-grain" />
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="absolute inset-0"
             style={{
-              backgroundImage:
-                'linear-gradient(rgba(0,212,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,1) 1px, transparent 1px)',
-              backgroundSize: '64px 64px',
+              background: 'radial-gradient(ellipse at center, transparent 28%, rgba(10,15,30,0.55) 65%, #050810 100%)',
             }}
           />
-          {/* Radial vignette */}
-          <div className="absolute inset-0 bg-radial-gradient" style={{
-            background: 'radial-gradient(ellipse at center, transparent 40%, #0A0F1E 100%)'
-          }} />
+          {/* Light sweep */}
+          <div
+            className="absolute top-[8%] left-1/2 -translate-x-1/2 w-[55vw] h-[65vh] hero-light-sweep pointer-events-none"
+            style={{
+              background: 'linear-gradient(105deg, transparent 35%, rgba(0,212,255,0.07) 50%, transparent 65%)',
+            }}
+          />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center pt-16 pb-24 sm:pb-28">
+          {/* Live badge */}
+          <div className="inline-flex items-center gap-2 mb-8 sm:mb-10 px-4 py-2 rounded-full bg-black/30 border border-white/10 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
+            <Trophy className="w-3.5 h-3.5 text-[#00D4FF]" />
+            <span className="text-[10px] sm:text-xs font-semibold text-white/60 uppercase tracking-[0.2em]">
+              {monthLabel} · Live
+            </span>
+          </div>
 
-            {/* LEFT — Logo with cosmic rings */}
-            <div className="hidden lg:flex items-center justify-center">
-              <div className="relative w-[380px] h-[380px] flex items-center justify-center">
-                {/* Outer slow-pulse ring */}
-                <div className="absolute inset-0 rounded-full border border-[#00D4FF]/10 animate-[pulse_4s_ease-in-out_infinite]" />
-                {/* Mid ring */}
-                <div className="absolute inset-[12%] rounded-full border border-[#00D4FF]/15 animate-[pulse_3s_ease-in-out_infinite_0.5s]" />
-                {/* Inner ring */}
-                <div className="absolute inset-[24%] rounded-full border border-[#D4A017]/20 animate-[pulse_5s_ease-in-out_infinite_1s]" />
-                {/* Glow disc */}
-                <div className="absolute inset-[30%] rounded-full bg-[#00D4FF]/6 blur-[24px]" />
-                {/* Logo */}
+          {/* Logo — cinematic centerpiece */}
+          <div className="relative w-full flex justify-center mb-10 sm:mb-14">
+            {/* Stage pedestal */}
+            <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 w-[min(90vw,520px)] h-24 hero-stage-glow" />
+            <div
+              className="absolute bottom-[2%] left-1/2 -translate-x-1/2 w-[min(72vw,400px)] h-[1px]"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.5), rgba(212,160,23,0.35), transparent)' }}
+            />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[min(60vw,340px)] h-16 rounded-[100%] bg-[#00D4FF]/[0.04] blur-2xl" />
+
+            <div className="relative hero-logo-float">
+              {/* Halo rings */}
+              <div className="absolute inset-[-18%] rounded-full border border-[#00D4FF]/10" />
+              <div className="absolute inset-[-10%] rounded-full border border-white/[0.06]" />
+              {/* Pulsing glow behind logo */}
+              <div className="absolute inset-[-5%] rounded-full bg-[#00D4FF]/20 blur-[60px] hero-logo-glow" />
+              <div className="absolute inset-[5%] rounded-full bg-[#D4A017]/10 blur-[40px]" />
+
+              <Image
+                src="/logo.png"
+                alt="Africa Monthly"
+                width={480}
+                height={480}
+                className="relative z-10 w-[min(68vw,280px)] sm:w-[min(52vw,360px)] lg:w-[420px] h-auto rounded-full drop-shadow-[0_0_80px_rgba(0,212,255,0.45),0_24px_80px_rgba(0,0,0,0.6)]"
+                priority
+              />
+
+              {/* Floor reflection */}
+              <div
+                className="absolute top-full left-1/2 mt-2 w-[min(68vw,280px)] sm:w-[min(52vw,360px)] lg:w-[420px] h-16 overflow-hidden opacity-25 pointer-events-none"
+                style={{
+                  transform: 'translateX(-50%) scaleY(-1)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.35), transparent)',
+                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.35), transparent)',
+                }}
+                aria-hidden
+              >
                 <Image
                   src="/logo.png"
-                  alt="Africa Monthly"
-                  width={220}
-                  height={220}
-                  className="relative z-10 rounded-full drop-shadow-[0_0_48px_rgba(0,212,255,0.5)] animate-[pulse_6s_ease-in-out_infinite]"
-                  priority
+                  alt=""
+                  width={480}
+                  height={480}
+                  className="w-full h-auto rounded-full blur-[2px]"
                 />
-                {/* Orbiting dot — cyan */}
-                <div
-                  className="absolute w-3 h-3 rounded-full bg-[#00D4FF] shadow-[0_0_12px_#00D4FF]"
-                  style={{
-                    top: '10%', left: '50%',
-                    animation: 'spin 8s linear infinite',
-                    transformOrigin: '0 170px',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* RIGHT — Content */}
-            <div>
-              {/* Live badge */}
-              <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-[#00D4FF]/8 border border-[#00D4FF]/20 backdrop-blur-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
-                <Trophy className="w-3.5 h-3.5 text-[#00D4FF]" />
-                <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">
-                  {monthLabel} Competition · Live
-                </span>
-              </div>
-
-              {/* Headline */}
-              <h1
-                className="font-serif font-bold leading-[1.05]"
-                style={{ fontSize: 'clamp(2.8rem, 5.5vw, 5rem)' }}
-              >
-                <span className="text-white">Compete.</span>{' '}
-                <span
-                  className="italic text-transparent bg-clip-text"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 100%)' }}
-                >
-                  Engage.
-                </span>{' '}
-                <span
-                  className="text-transparent bg-clip-text"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #D4A017 0%, #E8B94F 100%)' }}
-                >
-                  Win.
-                </span>
-              </h1>
-
-              <p className="mt-6 text-lg text-white/50 leading-relaxed max-w-lg">
-                The African community&apos;s monthly leaderboard powered by{' '}
-                <span className="text-[#00D4FF]/80">Injective Chain</span>. 
-                </p>
-                <p>
-                Complete tasks, chat on
-                Telegram, participate in events </p>
-                <p>
-                Top 5 win exclusive rewards every month.
-                </p>
-
-              {/* CTAs */}
-              <div className="mt-10 flex flex-wrap gap-4">
-                <Link href="/tasks">
-                  <Button size="lg">
-                    Start Earning <ArrowRight size={18} />
-                  </Button>
-                </Link>
-                <Link href="/leaderboard">
-                  <Button variant="ghost" size="lg">
-                    View Leaderboard
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Stat chips */}
-              <div className="mt-12 flex flex-wrap gap-3">
-                {[
-                  { icon: <Calendar className="w-4 h-4 text-[#00D4FF]" />, value: daysLeft.toString(), label: 'days left', glow: 'inj' },
-                  { icon: <Trophy className="w-4 h-4 text-[#D4A017]" />, value: 'Top 5', label: 'rewarded', glow: 'gold' },
-                  { icon: <DollarSign className="w-4 h-4 text-[#00D4FF]" fill="currentColor" />, value: 'Earn', label: 'Usd', glow: 'inj' },
-                ].map((s) => (
-                  <div
-                    key={s.value}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/4 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/6 transition-all duration-200 backdrop-blur-sm"
-                  >
-                    {s.icon}
-                    <div>
-                      <span className={`font-serif font-bold text-xl block leading-none ${s.glow === 'gold' ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>{s.value}</span>
-                      <span className="text-white/30 text-xs">{s.label}</span>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
+
+          {/* Product title */}
+          <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.35em] text-white/35 mb-4">
+            Africa Monthly
+          </p>
+
+          <h1
+            className="font-serif font-bold leading-[1.08] max-w-3xl"
+            style={{ fontSize: 'clamp(2.2rem, 6vw, 4.25rem)' }}
+          >
+            <span className="text-white/95">Compete.</span>{' '}
+            <span
+              className="italic text-transparent bg-clip-text text-glow-inj"
+              style={{ backgroundImage: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 100%)' }}
+            >
+              Engage.
+            </span>{' '}
+            <span
+              className="text-transparent bg-clip-text text-glow-gold"
+              style={{ backgroundImage: 'linear-gradient(135deg, #D4A017 0%, #E8B94F 100%)' }}
+            >
+              Win.
+            </span>
+          </h1>
+
+          <p className="mt-5 sm:mt-6 text-sm sm:text-lg text-white/45 leading-relaxed max-w-xl mx-auto">
+            The African community&apos;s monthly leaderboard on{' '}
+            <span className="text-[#00D4FF]/75">Injective</span>.
+            Complete tasks, chat on Telegram, climb the ranks — top 5 win every month.
+          </p>
+
+          {/* CTAs */}
+          <div className="mt-8 sm:mt-10 flex flex-wrap gap-3 sm:gap-4 justify-center">
+            <Link href="/tasks">
+              <Button size="lg">
+                Start Earning <ArrowRight size={18} />
+              </Button>
+            </Link>
+            <Link href="/leaderboard">
+              <Button variant="ghost" size="lg">
+                View Leaderboard
+              </Button>
+            </Link>
+          </div>
+
+          {/* Stat chips */}
+          <div className="mt-10 sm:mt-14 flex flex-wrap gap-3 justify-center">
+            {[
+              { icon: <Calendar className="w-4 h-4 text-[#00D4FF]" />, value: daysLeft.toString(), label: 'days left', glow: 'inj' },
+              { icon: <Trophy className="w-4 h-4 text-[#D4A017]" />, value: 'Top 5', label: 'rewarded', glow: 'gold' },
+              { icon: <DollarSign className="w-4 h-4 text-[#00D4FF]" fill="currentColor" />, value: 'Earn', label: 'USD', glow: 'inj' },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-[#00D4FF]/25 transition-all duration-300 backdrop-blur-md"
+              >
+                {s.icon}
+                <div className="text-left">
+                  <span className={`font-serif font-bold text-lg sm:text-xl block leading-none ${s.glow === 'gold' ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>
+                    {s.value}
+                  </span>
+                  <span className="text-white/30 text-[10px] sm:text-xs uppercase tracking-wider">{s.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll cue */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-30">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-white/50">Scroll</span>
+          <div className="w-[1px] h-8 bg-gradient-to-b from-white/40 to-transparent" />
         </div>
       </section>
 

@@ -10,13 +10,22 @@ export async function POST() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { error } = await supabase
+  const { error: usersError } = await supabase
     .from('users')
-    .update({ monthly_points: 0 })
+    .update({ monthly_points: 0, telegram_chat_count: 0 })
     .neq('id', '00000000-0000-0000-0000-000000000000') // match all rows
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (usersError) {
+    return NextResponse.json({ error: usersError.message }, { status: 500 })
+  }
+
+  const { error: telegramError } = await supabase
+    .from('telegram_events')
+    .update({ message_count: 0, points_awarded: 0 })
+    .neq('id', '00000000-0000-0000-0000-000000000000')
+
+  if (telegramError) {
+    return NextResponse.json({ error: telegramError.message }, { status: 500 })
   }
 
   revalidatePath('/leaderboard')

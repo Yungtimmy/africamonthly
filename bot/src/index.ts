@@ -1,6 +1,7 @@
 import { createServer } from 'http'
 import { processTelegramMessage } from './telegram.js'
 import { supabase } from './supabase.js'
+import { telegramPointsFromMessages } from './constants.js'
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const ALLOWED_GROUP_ID = process.env.TELEGRAM_GROUP_ID
@@ -80,7 +81,7 @@ async function handleStatsCommand(chatId: number | string, args: string) {
       .gt('monthly_points', user.monthly_points)
 
     const rank = (count ?? 0) + 1
-    const telegramPts = Math.floor((user.telegram_chat_count ?? 0) / 10)
+    const telegramPts = telegramPointsFromMessages(user.telegram_chat_count ?? 0)
 
     await sendMessage(chatId,
       `👤 <b>${esc(user.discord_username)}</b>\n` +
@@ -155,7 +156,7 @@ async function handleMessage(message: TelegramMessage) {
       `<b>How to participate:</b>\n` +
       `1️⃣ Sign in at <a href="${SITE_URL}">${SITE_URL}</a> with Discord\n` +
       `2️⃣ Connect your Telegram ID on your profile\n` +
-      `3️⃣ Chat in the group to earn points (10 messages = 1 pt)\n` +
+      `3️⃣ Chat in the group to earn points (10 messages = 1 pt, max 500 pts/month)\n` +
       `4️⃣ Complete tasks on the platform for bonus points\n\n` +
       `📊 Use /stats to see the leaderboard\n\n` +
       `Let's go! 🚀`

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { X_ACTION_POINTS, type XAction } from '@/lib/points'
 
 export async function GET() {
   const { data, error } = await supabase
@@ -12,8 +13,6 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
-
-const X_ACTION_POINTS: Record<string, number> = { like: 20, reply: 30, retweet: 50, quote: 50 }
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -36,7 +35,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Invalid actions: ${invalid.join(', ')}` }, { status: 400 })
     }
     // Points = sum of all selected actions
-    resolvedPoints = x_actions.reduce((sum: number, a: string) => sum + X_ACTION_POINTS[a], 0)
+    resolvedPoints = x_actions.reduce(
+      (sum: number, a: string) => sum + X_ACTION_POINTS[a as XAction],
+      0
+    )
   } else {
     if (!title || !description || !points) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })

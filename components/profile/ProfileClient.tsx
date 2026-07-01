@@ -6,6 +6,11 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatPoints, formatRelativeTime } from '@/lib/utils'
+import {
+  TELEGRAM_MONTHLY_POINTS_CAP,
+  isTelegramPointsCapped,
+  telegramPointsFromMessages,
+} from '@/lib/points'
 import { ExternalLink, MessageCircle, Wallet, XIcon, Trophy, TrendingUp, Hash, Sparkles, Flame, Crown, CheckCircle2, Medal, Lock, Award } from 'lucide-react'
 import { KeplrConnect } from './KeplrConnect'
 import { TelegramLogin } from './TelegramLogin'
@@ -86,8 +91,9 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
   }
 
   const chatCount = user.telegramChatCount ?? 0
-  const telegramPoints = Math.floor(chatCount / 10)
-  const nextPointIn = 10 - (chatCount % 10)
+  const telegramPoints = telegramPointsFromMessages(chatCount)
+  const atCap = isTelegramPointsCapped(chatCount)
+  const nextPointIn = atCap ? 0 : 10 - (chatCount % 10)
 
   const approvedCount = submissions.filter((s) => s.status === 'approved').length
 
@@ -150,15 +156,26 @@ export function ProfileClient({ user, submissions, rank }: ProfileClientProps) {
             <div className="flex-1">
               <p className="text-sm font-medium text-white">Telegram Activity</p>
               <p className="text-xs text-white/30 mt-0.5">
-                {chatCount} messages → <span className="text-[#00D4FF]">{telegramPoints} points earned</span>
+                {chatCount} messages →{' '}
+                <span className="text-[#00D4FF]">
+                  {telegramPoints}/{TELEGRAM_MONTHLY_POINTS_CAP} points earned
+                </span>
               </p>
               <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#00D4FF] rounded-full transition-all shadow-[0_0_6px_rgba(0,212,255,0.6)]"
-                  style={{ width: `${Math.min(100, (chatCount % 10) * 10)}%` }}
+                  style={{
+                    width: atCap
+                      ? '100%'
+                      : `${Math.min(100, (chatCount % 10) * 10)}%`,
+                  }}
                 />
               </div>
-              <p className="text-xs text-white/20 mt-1">{nextPointIn} more message{nextPointIn !== 1 ? 's' : ''} until next point</p>
+              <p className="text-xs text-white/20 mt-1">
+                {atCap
+                  ? `Monthly cap reached (${TELEGRAM_MONTHLY_POINTS_CAP} pts). Resets next month.`
+                  : `${nextPointIn} more message${nextPointIn !== 1 ? 's' : ''} until next point`}
+              </p>
             </div>
           </div>
         )}
