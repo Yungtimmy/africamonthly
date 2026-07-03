@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import { X_ACTION_POINTS, type XAction } from '@/lib/points'
+import { calculateXPoints, isValidXAction, normalizeXActions } from '@/lib/points'
 
 export async function GET() {
   const { data, error } = await supabase
@@ -23,6 +23,8 @@ export async function POST(req: Request) {
   const resolvedTaskType: string = task_type ?? 'other_event'
 
   let resolvedPoints: number
+  let normalizedActions: string[] | undefined
+
   if (resolvedTaskType === 'x_post') {
     if (!x_post_url) {
       return NextResponse.json({ error: 'x_post_url is required for x_post tasks' }, { status: 400 })
@@ -30,15 +32,12 @@ export async function POST(req: Request) {
     if (!x_actions || !Array.isArray(x_actions) || x_actions.length === 0) {
       return NextResponse.json({ error: 'At least one action is required for X post tasks' }, { status: 400 })
     }
-    const invalid = x_actions.filter((a: string) => !(a in X_ACTION_POINTS))
+    const invalid = x_actions.filter((a: string) => !isValidXAction(a))
     if (invalid.length > 0) {
       return NextResponse.json({ error: `Invalid actions: ${invalid.join(', ')}` }, { status: 400 })
     }
-    // Points = sum of all selected actions
-    resolvedPoints = x_actions.reduce(
-      (sum: number, a: string) => sum + X_ACTION_POINTS[a as XAction],
-      0
-    )
+    normalizedActions = normalizeXActions(x_actions)
+    resolvedPoints = calculateXPoints(x_actions)
   } else {
     if (!title || !description || !points) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -61,7 +60,7 @@ export async function POST(req: Request) {
   }
   if (resolvedTaskType === 'x_post') {
     insertPayload.x_post_url = x_post_url
-    insertPayload.x_actions = x_actions
+    insertPayload.x_actions = normalizedActions
   }
 
   const { data, error } = await supabase

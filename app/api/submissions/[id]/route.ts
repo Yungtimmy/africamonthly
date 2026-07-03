@@ -20,7 +20,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .single()
 
   if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (submission.status !== 'pending') return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
+  if (submission.status !== 'pending') {
+    return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
+  }
 
   const { data: adminUser } = await supabase
     .from('users')
@@ -33,24 +35,42 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (action === 'approve') {
     const points = submission.tasks?.points ?? 0
 
-    await supabase.from('submissions').update({
-      status: 'approved',
-      points_awarded: points,
-      reviewed_by: adminUser?.id,
-      reviewed_at: now,
-    }).eq('id', id)
+    const { data: updated, error: updateError } = await supabase
+      .from('submissions')
+      .update({
+        status: 'approved',
+        points_awarded: points,
+        reviewed_by: adminUser?.id,
+        reviewed_at: now,
+      })
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('id')
+      .maybeSingle()
 
-    // Increment user points atomically (avoids lost updates under concurrency)
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
+    if (!updated) return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
+
     await supabase.rpc('increment_user_points', {
       p_user_id: submission.user_id,
       p_delta: points,
     })
   } else {
-    await supabase.from('submissions').update({
-      status: 'rejected',
-      reviewed_by: adminUser?.id,
-      reviewed_at: now,
-    }).eq('id', id)
+    const { data: updated, error: updateError } = await supabase
+      .from('submissions')
+      .update({
+        status: 'rejected',
+        points_awarded: null,
+        reviewed_by: adminUser?.id,
+        reviewed_at: now,
+      })
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('id')
+      .maybeSingle()
+
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
+    if (!updated) return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
   }
 
   return NextResponse.json({ success: true })

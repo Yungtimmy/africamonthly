@@ -8,9 +8,6 @@ create table if not exists users (
   discord_username text not null,
   discord_avatar text,
   discord_email text,
-  telegram_username text,
-  telegram_chat_count integer not null default 0,
-  twitter text,
   wallet_address text,
   total_points integer not null default 0,
   monthly_points integer not null default 0,
@@ -53,15 +50,6 @@ create table if not exists point_grants (
   created_at timestamptz not null default now()
 );
 
--- Telegram events (for chat tracking)
-create table if not exists telegram_events (
-  id uuid primary key default gen_random_uuid(),
-  telegram_username text unique not null,
-  message_count integer not null default 0,
-  points_awarded integer not null default 0,
-  synced_at timestamptz not null default now()
-);
-
 -- Auto-update updated_at on users
 create or replace function update_updated_at()
 returns trigger as $$
@@ -75,10 +63,20 @@ create trigger users_updated_at
   before update on users
   for each row execute function update_updated_at();
 
+-- Atomic point increment (submission approvals + manual grants)
+create or replace function increment_user_points(p_user_id uuid, p_delta integer)
+returns void
+language sql
+as $$
+  update users
+  set total_points = total_points + p_delta,
+      monthly_points = monthly_points + p_delta
+  where id = p_user_id;
+$$;
+
 -- Indexes
 create index if not exists users_discord_id_idx on users(discord_id);
 create index if not exists users_monthly_points_idx on users(monthly_points desc);
 create index if not exists submissions_user_id_idx on submissions(user_id);
 create index if not exists submissions_task_id_idx on submissions(task_id);
 create index if not exists submissions_status_idx on submissions(status);
-create index if not exists telegram_events_username_idx on telegram_events(telegram_username);

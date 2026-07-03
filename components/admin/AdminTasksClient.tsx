@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { X_ACTION_POINTS, type XAction } from '@/lib/points'
+import { OEmbedPreview } from '@/components/ui/OEmbedPreview'
+import { X_ACTION_POINTS, type XAction, normalizeXActions } from '@/lib/points'
 
 interface Task {
   id: string
@@ -20,47 +21,8 @@ interface Task {
 const X_ACTIONS: { value: XAction; label: string; pts: number }[] = [
   { value: 'like', label: 'Like', pts: X_ACTION_POINTS.like },
   { value: 'reply', label: 'Reply', pts: X_ACTION_POINTS.reply },
-  { value: 'retweet', label: 'Retweet', pts: X_ACTION_POINTS.retweet },
-  { value: 'quote', label: 'Quote', pts: X_ACTION_POINTS.quote },
+  { value: 'repost', label: 'Repost / Quote', pts: X_ACTION_POINTS.repost },
 ]
-
-function OEmbedPreview({ url }: { url: string }) {
-  const [html, setHtml] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!url) { setHtml(null); return }
-    const timer = setTimeout(async () => {
-      setLoading(true)
-      try {
-        const res = await fetch(
-          `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`
-        )
-        if (res.ok) {
-          const data = await res.json() as { html: string }
-          setHtml(data.html)
-        } else {
-          setHtml(null)
-        }
-      } catch {
-        setHtml(null)
-      } finally {
-        setLoading(false)
-      }
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [url])
-
-  if (!url) return null
-  if (loading) return <p className="text-xs text-white/30 italic">Loading preview...</p>
-  if (!html) return <p className="text-xs text-red-400/70">Could not load preview for this URL.</p>
-  return (
-    <div
-      className="rounded-xl overflow-hidden bg-black/30 border border-white/10 p-3 text-sm"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  )
-}
 
 export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState(initialTasks)
@@ -92,7 +54,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
     setTaskType(isX ? 'x_post' : 'other_event')
     setForm({ title: task.title ?? '', description: task.description ?? '', points: String(task.points ?? '') })
     setXUrl(task.x_post_url ?? '')
-    setXActions((task.x_actions as XAction[]) ?? [])
+    setXActions(normalizeXActions((task.x_actions as string[]) ?? []))
     setShowForm(true)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -199,9 +161,9 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
               {isXPost ? (task.x_post_url ?? task.title) : task.title}
             </h3>
             <Badge variant="points">+{task.points}</Badge>
-            {isXPost && task.x_actions && task.x_actions.map((a) => (
-              <span key={a} className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                {a}
+            {isXPost && task.x_actions && normalizeXActions(task.x_actions).map((a) => (
+              <span key={a} className="text-xs text-[#00D4FF] px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
+                {X_ACTIONS.find((x) => x.value === a)?.label ?? a}
               </span>
             ))}
             {!active && <Badge>Inactive</Badge>}

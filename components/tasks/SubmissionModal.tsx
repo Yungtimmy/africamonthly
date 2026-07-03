@@ -5,6 +5,8 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExternalLink, Upload, ImageIcon, X } from 'lucide-react'
+import { OEmbedPreview } from '@/components/ui/OEmbedPreview'
+import { formatXActionsLabel, normalizeXActions } from '@/lib/points'
 
 interface SubmissionModalProps {
   task: {
@@ -22,8 +24,7 @@ interface SubmissionModalProps {
 const ACTION_INSTRUCTIONS: Record<string, string> = {
   like: 'Upload a screenshot of your like on the post',
   reply: 'Paste the link to your reply tweet',
-  retweet: 'Upload a screenshot of your retweet',
-  quote: 'Paste the link to your quote tweet',
+  repost: 'Upload a screenshot of your repost, or paste your quote tweet link',
 }
 
 export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalProps) {
@@ -36,9 +37,9 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
   const fileRef = useRef<HTMLInputElement>(null)
 
   const isXPost = task.task_type === 'x_post'
-  const actions = task.x_actions ?? []
-  const hasLinkAction = actions.some((a) => a === 'reply' || a === 'quote')
-  const hasScreenshotAction = actions.some((a) => a === 'like' || a === 'retweet')
+  const actions = normalizeXActions(task.x_actions ?? [])
+  const hasLinkAction = actions.some((a) => a === 'reply' || a === 'repost')
+  const hasScreenshotAction = actions.some((a) => a === 'like' || a === 'repost')
 
   // For non-X tasks or tasks needing screenshots: show file upload
   // For link-only actions: show URL input
@@ -129,26 +130,29 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
         {/* X post actions */}
         {isXPost && actions.length > 0 && (
           <div className="rounded-xl bg-[#00D4FF]/5 border border-[#00D4FF]/15 p-4 space-y-3">
-            <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">Required actions</p>
+            <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">
+              Required: {formatXActionsLabel(actions)}
+            </p>
             <div className="space-y-2">
               {actions.map((action) => (
-                <div key={action} className="flex items-start gap-2">
-                  <span className="px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20 text-xs font-bold text-[#00D4FF] capitalize shrink-0">
-                    {action}
-                  </span>
-                  <span className="text-xs text-white/50">{ACTION_INSTRUCTIONS[action]}</span>
-                </div>
+                <p key={action} className="text-xs text-white/50">
+                  <span className="text-[#00D4FF] font-semibold">{action === 'repost' ? 'Repost / Quote' : action}</span>
+                  {' — '}{ACTION_INSTRUCTIONS[action]}
+                </p>
               ))}
             </div>
             {task.x_post_url && (
-              <a
-                href={task.x_post_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black border border-white/10 text-white text-xs font-medium hover:bg-white/5 transition-colors"
-              >
-                <span className="font-bold">𝕏</span> Open Post <ExternalLink size={10} />
-              </a>
+              <>
+                <OEmbedPreview url={task.x_post_url} />
+                <a
+                  href={task.x_post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs text-white/40 hover:text-[#00D4FF] transition-colors"
+                >
+                  Open on X <ExternalLink size={10} />
+                </a>
+              </>
             )}
           </div>
         )}
@@ -158,7 +162,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
           {needsFile && (
             <div>
               <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
-                {needsUrl ? 'Screenshot (for like/retweet)' : 'Screenshot'}
+                {needsUrl ? 'Screenshot (for like/repost)' : 'Screenshot'}
               </label>
               {preview ? (
                 <div className="relative rounded-xl overflow-hidden border border-white/10">
@@ -201,7 +205,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
               <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
                 <div className="flex items-center gap-1.5">
                   <ImageIcon size={11} />
-                  {hasScreenshotAction ? 'Tweet link (for reply/quote)' : 'Your tweet link'}
+                  {hasScreenshotAction ? 'Tweet link (for reply/repost)' : 'Your tweet link'}
                 </div>
               </label>
               <input

@@ -1,18 +1,18 @@
 import { supabase } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/Avatar'
-import { CheckCircle2, Clock, Zap, ListChecks, Gift, MessageCircle } from 'lucide-react'
+import { CheckCircle2, Clock, Zap, ListChecks, Gift } from 'lucide-react'
 
 export const revalidate = 0
 
 interface SubmissionRow { status: string; points_awarded: number | null; created_at: string }
 interface GrantRow { points: number; reason: string; created_at: string }
-interface UserRow { discord_username: string; discord_avatar: string | null; total_points: number; telegram_chat_count: number | null }
+interface UserRow { discord_username: string; discord_avatar: string | null; total_points: number }
 
 async function getData() {
   const [{ data: submissions }, { data: grants }, { data: users }] = await Promise.all([
     supabase.from('submissions').select('status, points_awarded, created_at'),
     supabase.from('point_grants').select('points, reason, created_at'),
-    supabase.from('users').select('discord_username, discord_avatar, total_points, telegram_chat_count'),
+    supabase.from('users').select('discord_username, discord_avatar, total_points'),
   ])
   return {
     submissions: (submissions ?? []) as SubmissionRow[],
@@ -38,8 +38,7 @@ export default async function AnalyticsPage() {
     .filter((s) => s.status === 'approved')
     .reduce((sum, s) => sum + (s.points_awarded ?? 0), 0)
   const manualPoints = grants.reduce((sum, g) => sum + g.points, 0)
-  const telegramPoints = users.reduce((sum, u) => sum + Math.floor((u.telegram_chat_count ?? 0) / 10), 0)
-  const totalAwarded = taskPoints + manualPoints + telegramPoints
+  const totalAwarded = taskPoints + manualPoints
 
   // Submissions per day, last 14 days
   const days: { key: string; label: string; count: number }[] = []
@@ -60,7 +59,6 @@ export default async function AnalyticsPage() {
   const sources = [
     { label: 'Tasks', value: taskPoints, color: 'bg-[#00D4FF]', icon: <ListChecks size={14} className="text-[#00D4FF]" /> },
     { label: 'Manual grants', value: manualPoints, color: 'bg-[#D4A017]', icon: <Gift size={14} className="text-[#D4A017]" /> },
-    { label: 'Telegram', value: telegramPoints, color: 'bg-emerald-400', icon: <MessageCircle size={14} className="text-emerald-400" /> },
   ]
   const maxSource = Math.max(1, ...sources.map((s) => s.value))
 

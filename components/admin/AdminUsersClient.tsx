@@ -219,7 +219,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                     type="text"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="e.g. Weekly Telegram activity — 42 messages"
+                    placeholder="e.g. Weekly community activity — 42 messages"
                     required
                     className={inputClass}
                   />

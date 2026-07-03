@@ -45,6 +45,11 @@ async function getUserData(userId: string) {
   }
 }
 
+export const metadata = {
+  title: 'Dashboard — Africa Monthly',
+  description: 'Your points, wallet, and submission history.',
+}
+
 export default async function ProfilePage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/')

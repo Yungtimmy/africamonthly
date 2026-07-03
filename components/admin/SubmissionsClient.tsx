@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatRelativeTime } from '@/lib/utils'
+import { formatXActionsLabel } from '@/lib/points'
 
 interface Submission {
   id: string
@@ -22,6 +23,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
   const [loading, setLoading] = useState<string | null>(null)
 
   async function handleReview(id: string, action: 'approve' | 'reject') {
+    if (loading) return
     setLoading(id)
     try {
       const res = await fetch(`/api/submissions/${id}`, {
@@ -31,6 +33,12 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
       })
       if (res.ok) {
         setSubmissions((prev) => prev.filter((s) => s.id !== id))
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error ?? `Failed to ${action} submission`)
+        if (res.status === 409) {
+          setSubmissions((prev) => prev.filter((s) => s.id !== id))
+        }
       }
     } finally {
       setLoading(null)
@@ -50,7 +58,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
   return (
     <div className="space-y-4">
       {submissions.map((sub) => {
-        const isProcessing = loading === sub.id
+        const isProcessing = loading === sub.id || loading !== null
         const isXPost = sub.tasks?.task_type === 'x_post'
         return (
           <div
@@ -83,13 +91,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
                     <span className="text-sm text-white font-medium">X / Twitter Task</span>
                   </div>
                   {sub.tasks?.x_actions && sub.tasks.x_actions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {sub.tasks.x_actions.map((a) => (
-                        <span key={a} className="text-xs text-[#00D4FF] capitalize px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                          {a}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="text-xs text-[#00D4FF] mt-1">{formatXActionsLabel(sub.tasks.x_actions)}</p>
                   )}
                   {sub.tasks?.x_post_url && (
                     <a

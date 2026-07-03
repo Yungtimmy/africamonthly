@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-
-const X_ACTION_POINTS: Record<string, number> = { like: 20, reply: 30, retweet: 50, quote: 50 }
+import { calculateXPoints, isValidXAction, normalizeXActions } from '@/lib/points'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -18,13 +17,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if ('x_post_url' in body) update.x_post_url = body.x_post_url
 
   if (Array.isArray(body.x_actions)) {
-    const invalid = body.x_actions.filter((a: string) => !(a in X_ACTION_POINTS))
+    const invalid = body.x_actions.filter((a: string) => !isValidXAction(a))
     if (invalid.length > 0) {
       return NextResponse.json({ error: `Invalid actions: ${invalid.join(', ')}` }, { status: 400 })
     }
-    update.x_actions = body.x_actions
-    // Keep points in sync with selected actions, matching task creation
-    update.points = body.x_actions.reduce((sum: number, a: string) => sum + X_ACTION_POINTS[a], 0)
+    const normalized = normalizeXActions(body.x_actions)
+    update.x_actions = normalized
+    update.points = calculateXPoints(body.x_actions)
   } else if ('points' in body) {
     const pts = Number(body.points)
     if (isNaN(pts) || pts < 0) return NextResponse.json({ error: 'Invalid points' }, { status: 400 })
@@ -65,8 +64,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     .select('id', { count: 'exact', head: true })
     .eq('task_id', id)
 
-  // Safety: a task with submissions must be deactivated before deletion, so it
-  // can't be removed while users are actively submitting to it.
   if ((submissionCount ?? 0) > 0 && task.is_active) {
     return NextResponse.json(
       { error: 'Deactivate this task before deleting it.' },
@@ -74,9 +71,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     )
   }
 
-  // Remove the task's submission records first (FK), then the task itself.
-  // NOTE: points already awarded live on each user's row and are NOT affected —
-  // this only clears the submission history for this task.
   if ((submissionCount ?? 0) > 0) {
     const { error: subErr } = await supabase.from('submissions').delete().eq('task_id', id)
     if (subErr) return NextResponse.json({ error: subErr.message }, { status: 500 })
