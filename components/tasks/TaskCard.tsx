@@ -1,9 +1,10 @@
-import { CheckCircle2, Clock, XCircle, Zap, Hourglass } from 'lucide-react'
+import { CheckCircle2, Clock, XCircle, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { OEmbedPreview } from '@/components/ui/OEmbedPreview'
+import { CountdownChip } from '@/components/tasks/CountdownChip'
 import { formatXActionsLabel } from '@/lib/points'
-import { useCountdown, urgencyClasses } from '@/lib/expiry'
+import { useCountdown } from '@/lib/expiry'
 import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
@@ -46,6 +47,14 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
   const isXPost = task.task_type === 'x_post'
   const { remaining, urgency } = useCountdown(task.expires_at)
 
+  // Hoist the countdown chip render so the conditional lives in one place
+  // even though it slots into different parents in the X-post vs non-X
+  // branch (it's the first child of each title flex row).
+  const countdownChip =
+    !isDone && task.expires_at ? (
+      <CountdownChip urgency={urgency} remaining={remaining} expiresAt={task.expires_at} />
+    ) : null
+
   return (
     <article
       className={cn(
@@ -55,24 +64,13 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
           : 'bg-white/3 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/5'
       )}
     >
-      {/* Live countdown chip — top-right, only for unfinished/not-yet-approved tasks. */}
-      {!isDone && task.expires_at && (
-        <div
-          className={cn(
-            'absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border backdrop-blur-sm',
-            urgencyClasses(urgency)
-          )}
-          title={`Expires ${new Date(task.expires_at).toLocaleString()}`}
-        >
-          <Hourglass size={10} />
-          {remaining === 'Expired' ? 'Expired' : `Expires in ${remaining}`}
-        </div>
-      )}
-
+      {/* Countdown chip is rendered inside the title row below so it shares
+          the same flex line as title + points and never overlaps them. */}
       {isXPost ? (
         <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+          <div className="flex items-start gap-3">
+            {countdownChip}
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-white font-bold text-lg leading-none">𝕏</span>
                 <span className="text-white/60 text-sm font-medium">X / Twitter Task</span>
@@ -103,8 +101,9 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
         </div>
       ) : (
         <>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="font-serif text-lg font-semibold text-white leading-snug flex-1">
+          <div className="flex items-start gap-3">
+            {countdownChip}
+            <h3 className="font-serif text-lg font-semibold text-white leading-snug flex-1 min-w-0">
               {task.title}
             </h3>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/25 shrink-0">
