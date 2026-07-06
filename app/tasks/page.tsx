@@ -10,19 +10,24 @@ interface TaskWithStatus {
   task_type?: string
   x_post_url?: string | null
   x_actions?: string[] | null
+  expires_at?: string | null
   submissionStatus: string | null
 }
 
 async function getTasksWithStatus(userId?: string): Promise<TaskWithStatus[]> {
+  // Filter at the source: only return tasks that are active AND not expired.
+  // (expires_at is nullable — null means no auto-expiry.)
+  const cutoff = new Date().toISOString()
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*')
     .eq('is_active', true)
+    .or(`expires_at.is.null,expires_at.gt.${cutoff}`)
     .order('created_at', { ascending: false })
 
   if (!tasks) return []
 
-  type RawTask = { id: string; title: string; description: string; points: number; task_type?: string; x_post_url?: string | null; x_actions?: string[] | null }
+  type RawTask = { id: string; title: string; description: string; points: number; task_type?: string; x_post_url?: string | null; x_actions?: string[] | null; expires_at?: string | null }
   const typedTasks = tasks as RawTask[]
 
   if (!userId) return typedTasks.map((t) => ({ ...t, submissionStatus: null }))

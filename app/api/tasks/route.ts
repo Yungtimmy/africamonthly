@@ -4,10 +4,21 @@ import { supabase } from '@/lib/supabase'
 import { calculateXPoints, isValidXAction, normalizeXActions } from '@/lib/points'
 
 export async function GET() {
+  // Lazy auto-deactivation: any active task whose expires_at has passed
+  // gets is_active flipped to false. Idempotent, no cron required.
+  await supabase
+    .from('tasks')
+    .update({ is_active: false })
+    .eq('is_active', true)
+    .not('expires_at', 'is', null)
+    .lt('expires_at', new Date().toISOString())
+
+  const cutoff = new Date().toISOString()
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
     .eq('is_active', true)
+    .or(`expires_at.is.null,expires_at.gt.${cutoff}`)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -18,7 +29,7 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { title, description, points, task_type, x_post_url, x_actions } = await req.json()
+  const { title, description, points, task_type, x_post_url, x_actions, expiresAt } = await req.json()
 
   const resolvedTaskType: string = task_type ?? 'other_event'
 
@@ -51,12 +62,27 @@ export async function POST(req: Request) {
     .eq('discord_id', session.user.discordId)
     .single()
 
+  // Resolve expires_at — admins can override or pass null to disable expiry.
+  // Default: 3 days from now.
+  let resolvedExpiresAt: string | null
+  if (expiresAt === null) {
+    resolvedExpiresAt = null
+  } else if (typeof expiresAt === 'string') {
+    if (Number.isNaN(Date.parse(expiresAt))) {
+      return NextResponse.json({ error: 'Invalid expiresAt value' }, { status: 400 })
+    }
+    resolvedExpiresAt = new Date(expiresAt).toISOString()
+  } else {
+    resolvedExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+  }
+
   const insertPayload: Record<string, unknown> = {
     title: resolvedTaskType === 'x_post' ? (title || x_post_url) : title,
     description: description ?? '',
     points: resolvedPoints,
     task_type: resolvedTaskType,
     created_by: adminUser?.id,
+    expires_at: resolvedExpiresAt,
   }
   if (resolvedTaskType === 'x_post') {
     insertPayload.x_post_url = x_post_url

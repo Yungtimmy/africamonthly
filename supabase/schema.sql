@@ -63,15 +63,27 @@ create trigger users_updated_at
   before update on users
   for each row execute function update_updated_at();
 
--- Atomic point increment (submission approvals + manual grants)
+-- Atomic point increment (submission approvals + manual grants/deductions).
+-- Returns the row count: 1 on success, 0 if the user is missing OR a deduction
+-- would push either balance below 0. Floor check is enforced atomically inside
+-- the UPDATE; grants (p_delta >= 0) bypass it.
 create or replace function increment_user_points(p_user_id uuid, p_delta integer)
-returns void
-language sql
+returns integer
+language plpgsql
 as $$
+declare
+  affected integer;
+begin
   update users
-  set total_points = total_points + p_delta,
-      monthly_points = monthly_points + p_delta
-  where id = p_user_id;
+    set total_points = total_points + p_delta,
+        monthly_points = monthly_points + p_delta
+    where id = p_user_id
+      and (p_delta >= 0
+           or (monthly_points + p_delta >= 0
+               and total_points + p_delta >= 0));
+  get diagnostics affected = row_count;
+  return affected;
+end;
 $$;
 
 -- Indexes

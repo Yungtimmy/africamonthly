@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
+import type { ReactNode } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
-import { CheckCircle2, Clock, Zap, ListChecks, Gift } from 'lucide-react'
+import { CheckCircle2, Clock, Zap, ListChecks, Gift, MinusCircle } from 'lucide-react'
 
 export const revalidate = 0
 
@@ -37,8 +38,12 @@ export default async function AnalyticsPage() {
   const taskPoints = submissions
     .filter((s) => s.status === 'approved')
     .reduce((sum, s) => sum + (s.points_awarded ?? 0), 0)
-  const manualPoints = grants.reduce((sum, g) => sum + g.points, 0)
-  const totalAwarded = taskPoints + manualPoints
+  // Split manual grants into awarded (positive) vs deducted (negative abs) so
+  // the dashboard doesn't under-report what admins actually moved once
+  // deductions start flowing. Net change is awarded − deducted.
+  const manualAwarded = grants.filter((g) => g.points > 0).reduce((sum, g) => sum + g.points, 0)
+  const manualDeducted = grants.filter((g) => g.points < 0).reduce((sum, g) => sum + Math.abs(g.points), 0)
+  const totalAwarded = taskPoints + manualAwarded
 
   // Submissions per day, last 14 days
   const days: { key: string; label: string; count: number }[] = []
@@ -55,25 +60,50 @@ export default async function AnalyticsPage() {
   }
   const maxDay = Math.max(1, ...days.map((d) => d.count))
 
-  // Points by source
-  const sources = [
+  // Points by source — split awards vs deductions, hide deductions bar when zero.
+  const sources: { label: string; value: number; color: string; icon: ReactNode }[] = [
     { label: 'Tasks', value: taskPoints, color: 'bg-[#00D4FF]', icon: <ListChecks size={14} className="text-[#00D4FF]" /> },
-    { label: 'Manual grants', value: manualPoints, color: 'bg-[#D4A017]', icon: <Gift size={14} className="text-[#D4A017]" /> },
+    { label: 'Manual awards', value: manualAwarded, color: 'bg-[#D4A017]', icon: <Gift size={14} className="text-[#D4A017]" /> },
   ]
+  if (manualDeducted > 0) {
+    sources.push({
+      label: 'Manual deductions',
+      value: manualDeducted,
+      color: 'bg-red-500',
+      icon: <MinusCircle size={14} className="text-red-400" />,
+    })
+  }
   const maxSource = Math.max(1, ...sources.map((s) => s.value))
 
   // Top earners
   const topEarners = [...users].sort((a, b) => b.total_points - a.total_points).slice(0, 5)
 
-  // Grant reasons (top 5 by total points)
+  // Grant reasons (top 5 by total points) — only counts awards, not deductions,
+  // so a reason nets to a meaningful positive number.
   const reasonMap = new Map<string, number>()
-  for (const g of grants) reasonMap.set(g.reason, (reasonMap.get(g.reason) ?? 0) + g.points)
+  for (const g of grants.filter((g) => g.points > 0)) {
+    reasonMap.set(g.reason, (reasonMap.get(g.reason) ?? 0) + g.points)
+  }
   const topReasons = [...reasonMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
 
-  const statCards = [
+  // 4 stat cards to match the rest of the app's grid (2x2 / 4-up). The
+  // `Points deducted` count is surfaced as a sub-hint under `Points awarded`
+  // so the net effect stays visible without breaking visual rhythm.
+  const netAwarded = totalAwarded - manualDeducted
+  const pointsHint =
+    manualDeducted > 0
+      ? `−${manualDeducted.toLocaleString()} deducted → net ${netAwarded >= 0 ? '+' : ''}${netAwarded.toLocaleString()}`
+      : undefined
+
+  const statCards: { label: string; value: ReactNode; hint?: string; icon: ReactNode }[] = [
     { label: 'Total submissions', value: submissions.length, icon: <ListChecks className="w-5 h-5 text-[#00D4FF]" /> },
     { label: 'Approval rate', value: `${approvalRate}%`, icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" /> },
-    { label: 'Points awarded', value: totalAwarded.toLocaleString(), icon: <Zap className="w-5 h-5 text-[#D4A017]" /> },
+    {
+      label: 'Points awarded',
+      value: totalAwarded.toLocaleString(),
+      hint: pointsHint,
+      icon: <Zap className="w-5 h-5 text-[#D4A017]" />,
+    },
     { label: 'Pending reviews', value: pending, icon: <Clock className="w-5 h-5 text-amber-400" /> },
   ]
 
@@ -82,7 +112,7 @@ export default async function AnalyticsPage() {
       <h1 className="font-serif text-3xl font-bold text-white mb-2">Analytics</h1>
       <p className="text-white/30 text-sm mb-8">Engagement and points overview.</p>
 
-      {/* Stat cards */}
+      {/* Stat cards — kept at lg:grid-cols-4 for visual consistency with other admin surfaces. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((c) => (
           <div key={c.label} className="relative rounded-2xl p-6 overflow-hidden bg-white/3 border border-white/8 backdrop-blur-sm">
@@ -90,6 +120,7 @@ export default async function AnalyticsPage() {
             <div className="mb-4">{c.icon}</div>
             <p className="font-serif font-bold text-3xl text-white">{c.value}</p>
             <p className="text-xs text-white/30 mt-1">{c.label}</p>
+            {c.hint && <p className="text-[10px] text-red-300/70 mt-0.5">{c.hint}</p>}
           </div>
         ))}
       </div>

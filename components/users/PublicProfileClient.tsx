@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Trophy, TrendingUp, Hash, Zap, Gift } from 'lucide-react'
+import { ArrowLeft, Trophy, TrendingUp, Hash, Zap, Gift, MinusCircle } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { formatPoints, formatRelativeTimeLong } from '@/lib/utils'
 
@@ -80,21 +80,43 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
           </p>
         ) : (
           <ul className="space-y-2">
-            {history.map((item) => (
-              <li
-                key={`${item.type}-${item.id}`}
-                className="flex items-start gap-3 rounded-xl px-4 py-3.5 bg-white/3 border border-white/6 min-h-[56px]"
-              >
-                <div className="mt-0.5 shrink-0 text-white/30">
-                  {item.type === 'grant' ? <Gift size={15} /> : <Zap size={15} className="text-[#D4A017]" />}
-                </div>
+            {history.map((item) => {
+              // Task awards are always positive. Grants can be positive OR a deduction
+              // recorded with a negative `points` value.
+              const isDeduction = item.type === 'grant' && item.points < 0
+              const sign = isDeduction ? '\u2212' : '+'
+              const displayPoints = Math.abs(item.points)
+              return (
+                <li
+                  key={`${item.type}-${item.id}`}
+                  className={`flex items-start gap-3 rounded-xl px-4 py-3.5 border min-h-[56px] ${
+                    isDeduction
+                      ? 'bg-red-500/5 border-red-500/15'
+                      : 'bg-white/3 border-white/6'
+                  }`}
+                >
+                  <div className="mt-0.5 shrink-0">
+                    {isDeduction
+                      ? <MinusCircle size={15} className="text-red-400" />
+                      : item.type === 'grant'
+                        ? <Gift size={15} className="text-[#D4A017]" />
+                        : <Zap size={15} className="text-[#D4A017]" />}
+                  </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white/90 leading-snug">{item.label}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-white/90 leading-snug">{item.label}</p>
+                    {isDeduction && (
+                      <span className="text-[10px] text-red-400/80">{'\u00b7 deducted'}</span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-white/35 mt-1">{formatRelativeTimeLong(item.awardedAt)}</p>
                 </div>
-                <span className="text-sm font-bold text-[#D4A017] shrink-0">+{item.points}</span>
-              </li>
-            ))}
+                <span className={`text-sm font-bold shrink-0 ${isDeduction ? 'text-red-400' : 'text-[#D4A017]'}`}>
+                  {sign}{displayPoints}
+                </span>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

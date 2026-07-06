@@ -1,8 +1,9 @@
-import { CheckCircle2, Clock, XCircle, Zap } from 'lucide-react'
+import { CheckCircle2, Clock, XCircle, Zap, Hourglass } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { OEmbedPreview } from '@/components/ui/OEmbedPreview'
 import { formatXActionsLabel } from '@/lib/points'
+import { useCountdown, urgencyClasses } from '@/lib/expiry'
 import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
@@ -14,6 +15,7 @@ interface TaskCardProps {
     task_type?: string
     x_post_url?: string | null
     x_actions?: string[] | null
+    expires_at?: string | null
   }
   submissionStatus: string | null
   isLoggedIn: boolean
@@ -42,6 +44,7 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
   const status = submissionStatus as keyof typeof statusConfig | null
   const isDone = status === 'approved'
   const isXPost = task.task_type === 'x_post'
+  const { remaining, urgency } = useCountdown(task.expires_at)
 
   return (
     <article
@@ -52,6 +55,20 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
           : 'bg-white/3 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/5'
       )}
     >
+      {/* Live countdown chip — top-right, only for unfinished/not-yet-approved tasks. */}
+      {!isDone && task.expires_at && (
+        <div
+          className={cn(
+            'absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border backdrop-blur-sm',
+            urgencyClasses(urgency)
+          )}
+          title={`Expires ${new Date(task.expires_at).toLocaleString()}`}
+        >
+          <Hourglass size={10} />
+          {remaining === 'Expired' ? 'Expired' : `Expires in ${remaining}`}
+        </div>
+      )}
+
       {isXPost ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">

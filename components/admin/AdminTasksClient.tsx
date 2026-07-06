@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap, ChevronDown, ChevronRight } from 'lucide-react'
+import { Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Zap, ChevronDown, ChevronRight, Hourglass } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { OEmbedPreview } from '@/components/ui/OEmbedPreview'
 import { X_ACTION_POINTS, type XAction, normalizeXActions } from '@/lib/points'
+import { useCountdown, urgencyClasses } from '@/lib/expiry'
+import { cn } from '@/lib/utils'
 
 interface Task {
   id: string
@@ -16,6 +18,7 @@ interface Task {
   task_type?: string
   x_post_url?: string | null
   x_actions?: string[] | null
+  expires_at?: string | null
 }
 
 const X_ACTIONS: { value: XAction; label: string; pts: number }[] = [
@@ -23,6 +26,90 @@ const X_ACTIONS: { value: XAction; label: string; pts: number }[] = [
   { value: 'reply', label: 'Reply', pts: X_ACTION_POINTS.reply },
   { value: 'repost', label: 'Repost / Quote', pts: X_ACTION_POINTS.repost },
 ]
+
+type RowHandlers = {
+  onEdit: (task: Task) => void
+  onToggle: (id: string, currentActive: boolean) => void
+  onDelete: (id: string) => void
+}
+
+/** A single row in the task list. Extracted into its own component so each row
+ *  gets its own useCountdown hook instance (stable hook order). */
+function Row({
+  task,
+  active,
+  isXPost,
+  onEdit,
+  onToggle,
+  onDelete,
+}: {
+  task: Task
+  active: boolean
+  isXPost: boolean
+} & RowHandlers) {
+  const { remaining, urgency, isExpired } = useCountdown(task.expires_at)
+  return (
+    <div
+      className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
+        active ? 'border-white/8' : 'border-white/5 opacity-60'
+      }`}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isXPost && <span className="font-bold text-white">𝕏</span>}
+          <h3 className="font-medium text-white truncate">
+            {isXPost ? (task.x_post_url ?? task.title) : task.title}
+          </h3>
+          <Badge variant="points">+{task.points}</Badge>
+          {isXPost && task.x_actions && normalizeXActions(task.x_actions).map((a) => (
+            <span key={a} className="text-xs text-[#00D4FF] px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
+              {X_ACTIONS.find((x) => x.value === a)?.label ?? a}
+            </span>
+          ))}
+          {!active && <Badge>Inactive</Badge>}
+          {task.expires_at && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border',
+                urgencyClasses(urgency)
+              )}
+              title={`Expires ${new Date(task.expires_at).toLocaleString()}`}
+            >
+              <Hourglass size={10} />
+              {isExpired ? 'Expired' : `Expires in ${remaining}`}
+            </span>
+          )}
+        </div>
+        {!isXPost && task.description && (
+          <p className="text-sm text-white/30 mt-1">{task.description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => onEdit(task)}
+          className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
+          title="Edit task"
+        >
+          <Pencil size={16} />
+        </button>
+        <button
+          onClick={() => onToggle(task.id, active)}
+          className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
+          title={active ? 'Deactivate' : 'Activate (extends +3 days)'}
+        >
+          {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+        </button>
+        <button
+          onClick={() => onDelete(task.id)}
+          className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+          title="Delete task"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState(initialTasks)
@@ -147,56 +234,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   function renderRow(task: Task) {
     const active = task.is_active ?? true
     const isXPost = task.task_type === 'x_post'
-    return (
-      <div
-        key={task.id}
-        className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
-          active ? 'border-white/8' : 'border-white/5 opacity-60'
-        }`}
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            {isXPost && <span className="font-bold text-white">𝕏</span>}
-            <h3 className="font-medium text-white truncate">
-              {isXPost ? (task.x_post_url ?? task.title) : task.title}
-            </h3>
-            <Badge variant="points">+{task.points}</Badge>
-            {isXPost && task.x_actions && normalizeXActions(task.x_actions).map((a) => (
-              <span key={a} className="text-xs text-[#00D4FF] px-2 py-0.5 rounded bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                {X_ACTIONS.find((x) => x.value === a)?.label ?? a}
-              </span>
-            ))}
-            {!active && <Badge>Inactive</Badge>}
-          </div>
-          {!isXPost && task.description && (
-            <p className="text-sm text-white/30 mt-1">{task.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => startEdit(task)}
-            className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
-            title="Edit task"
-          >
-            <Pencil size={16} />
-          </button>
-          <button
-            onClick={() => handleToggle(task.id, active)}
-            className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
-            title={active ? 'Deactivate' : 'Activate'}
-          >
-            {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-          </button>
-          <button
-            onClick={() => handleDelete(task.id)}
-            className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
-            title="Delete task"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-    )
+    return <Row key={task.id} task={task} active={active} isXPost={isXPost} onEdit={startEdit} onToggle={handleToggle} onDelete={handleDelete} />
   }
 
   return (

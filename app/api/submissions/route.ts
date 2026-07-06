@@ -43,6 +43,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
+  // Defense in depth: reject submissions on deactivated or expired tasks.
+  // The public task list normally filters these out, but a stale read could
+  // let one slip through.
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('is_active, expires_at')
+    .eq('id', taskId)
+    .single()
+
+  if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+  if (!task.is_active) {
+    return NextResponse.json({ error: 'This task is no longer accepting submissions' }, { status: 410 })
+  }
+  if (task.expires_at && new Date(task.expires_at) <= new Date()) {
+    return NextResponse.json({ error: 'This task has expired' }, { status: 410 })
+  }
+
   // Prevent duplicate non-rejected submissions
   const { data: existing } = await supabase
     .from('submissions')

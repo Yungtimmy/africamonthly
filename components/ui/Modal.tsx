@@ -42,7 +42,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       </div>
       <div
         className={cn(
-          'relative w-full max-w-md rounded-2xl z-[50] overflow-hidden',
+          'relative w-full max-w-md rounded-2xl z-[50] flex flex-col max-h-[90vh]',
           'bg-[#0D1525]/90 border border-[#00D4FF]/20 shadow-[0_0_40px_rgba(0,212,255,0.1),0_25px_60px_rgba(0,0,0,0.6)]',
           className
         )}
@@ -51,8 +51,8 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
         aria-labelledby="modal-title"
       >
         {/* Top accent line */}
-        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/60 to-transparent" />
-        <div className="flex items-center justify-between p-6 border-b border-white/5">
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/60 to-transparent shrink-0" />
+        <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
           <h2 id="modal-title" className="font-serif text-lg font-semibold text-white">
             {title}
           </h2>
@@ -64,7 +64,9 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
             <X size={18} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        {/* Scrollable body — keeps header sticky and lets long content scroll inside the modal
+             instead of stretching past the viewport on small/PC screens. */}
+        <div className="p-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar">{children}</div>
       </div>
     </div>
   )

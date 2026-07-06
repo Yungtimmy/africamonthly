@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Search, Zap, X, Wallet, Copy, Check } from 'lucide-react'
+import { Search, Zap, Minus, X, Wallet, Copy, Check, AlertTriangle } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { formatPoints } from '@/lib/utils'
+
+type Mode = 'grant' | 'deduct'
 
 interface User {
   id: string
@@ -57,10 +59,12 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [searching, setSearching] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [mode, setMode] = useState<Mode>('grant')
   const [points, setPoints] = useState('')
   const [reason, setReason] = useState('')
-  const [granting, setGranting] = useState(false)
-  const [grantSuccess, setGrantSuccess] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const handleSearch = useCallback(async () => {
     setSearching(true)
@@ -73,42 +77,60 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
     }
   }, [query])
 
-  function openModal(user: User) {
+  function openModal(user: User, m: Mode) {
     setSelectedUser(user)
+    setMode(m)
     setPoints('')
     setReason('')
-    setGrantSuccess(null)
+    setError(null)
+    setSuccess(null)
   }
 
   function closeModal() {
     setSelectedUser(null)
     setPoints('')
     setReason('')
+    setError(null)
   }
 
-  async function handleGrant(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedUser) return
-    setGranting(true)
+    const abs = Number(points)
+    if (!Number.isFinite(abs) || abs <= 0) {
+      setError('Enter a positive number of points.')
+      return
+    }
+    const signedDelta = mode === 'grant' ? abs : -abs
+    setSubmitting(true)
+    setError(null)
     try {
       const res = await fetch(`/api/users/${selectedUser.id}/points`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points: Number(points), reason }),
+        body: JSON.stringify({ points: signedDelta, reason }),
       })
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        setGrantSuccess(`✓ ${points} points granted to ${selectedUser.discord_username}`)
+        const verb = mode === 'grant' ? 'granted' : 'deducted'
+        const sign = mode === 'grant' ? '+' : '−'
+        setSuccess(`✓ ${abs} points ${verb} ${sign === '+' ? 'to' : 'from'} ${selectedUser.discord_username}`)
         setPoints('')
         setReason('')
-        // Update the user's points in the list
         setUsers((prev) => prev.map((u) =>
           u.id === selectedUser.id
-            ? { ...u, monthly_points: u.monthly_points + Number(points), total_points: u.total_points + Number(points) }
+            ? {
+                ...u,
+                monthly_points: u.monthly_points + signedDelta,
+                total_points: u.total_points + signedDelta,
+              }
             : u
         ))
+      } else {
+        setError(typeof data?.error === 'string' ? data.error : 'Request failed')
       }
     } finally {
-      setGranting(false)
+      setSubmitting(false)
     }
   }
 
@@ -117,6 +139,8 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
   const filteredUsers = query
     ? users.filter((u) => u.discord_username.toLowerCase().includes(query.toLowerCase()))
     : users
+
+  const isDeduct = mode === 'deduct'
 
   return (
     <div className="space-y-6">
@@ -143,8 +167,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            onClick={() => openModal(user)}
-            className="flex items-start gap-4 bg-white/3 border border-white/8 rounded-xl px-5 py-4 cursor-pointer transition-all hover:border-[#D4A017]/40 hover:bg-[#D4A017]/5 group"
+            className="flex items-start gap-2 sm:gap-4 bg-white/3 border border-white/8 rounded-xl px-3 sm:px-5 py-4 transition-all hover:border-[#00D4FF]/30 hover:bg-white/5"
           >
             <Avatar src={user.discord_avatar} name={user.discord_username} size="sm" />
             <div className="flex-1 min-w-0">
@@ -155,8 +178,21 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
               <p className="text-[#D4A017] font-bold">{formatPoints(user.monthly_points)} pts</p>
               <p className="text-white/30 text-xs">{formatPoints(user.total_points)} total</p>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/20 text-xs font-semibold text-[#D4A017] opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center">
-              <Zap size={12} /> <span className="hidden sm:inline">Grant Points</span>
+            <div className="flex flex-col gap-1.5 shrink-0 self-center">
+              <button
+                onClick={() => openModal(user, 'grant')}
+                className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg bg-[#D4A017]/10 border border-[#D4A017]/25 text-[11px] font-semibold text-[#D4A017] hover:bg-[#D4A017]/20 transition-colors cursor-pointer"
+                title={`Grant points to ${user.discord_username}`}
+              >
+                <Zap size={11} /> Grant
+              </button>
+              <button
+                onClick={() => openModal(user, 'deduct')}
+                className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/8 border border-red-500/25 text-[11px] font-semibold text-red-400 hover:bg-red-500/15 transition-colors cursor-pointer"
+                title={`Deduct points from ${user.discord_username}`}
+              >
+                <Minus size={11} /> Deduct
+              </button>
             </div>
           </div>
         ))}
@@ -165,12 +201,16 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
         )}
       </div>
 
-      {/* Grant Points Modal */}
+      {/* Award Points Modal (Grant OR Deduct) */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal} />
           <div className="relative w-full max-w-md rounded-2xl bg-[#0D1525] border border-white/10 p-5 sm:p-7 shadow-2xl">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#D4A017]/50 to-transparent" />
+            <div
+              className={`absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r ${
+                isDeduct ? 'from-transparent via-red-500/60 to-transparent' : 'from-transparent via-[#D4A017]/60 to-transparent'
+              }`}
+            />
 
             {/* Header */}
             <div className="flex items-start justify-between mb-5">
@@ -187,47 +227,112 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
               </button>
             </div>
 
-            {grantSuccess ? (
+            {/* Mode toggle */}
+            {!success && (
+              <div className="flex gap-1.5 mb-4 p-1 rounded-xl bg-white/3 border border-white/6">
+                <button
+                  type="button"
+                  onClick={() => { setMode('grant'); setPoints(''); setError(null) }}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    !isDeduct
+                      ? 'bg-[#D4A017]/20 text-[#D4A017] border border-[#D4A017]/30'
+                      : 'text-white/40 hover:text-white/70 border border-transparent'
+                  }`}
+                >
+                  <Zap size={12} /> Grant
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('deduct'); setPoints(''); setError(null) }}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    isDeduct
+                      ? 'bg-red-500/15 text-red-300 border border-red-500/30'
+                      : 'text-white/40 hover:text-white/70 border border-transparent'
+                  }`}
+                >
+                  <Minus size={12} /> Deduct
+                </button>
+              </div>
+            )}
+
+            {success ? (
               <div className="text-center py-6 space-y-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                  <Zap size={20} className="text-emerald-400" />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${
+                  isDeduct ? 'bg-red-500/10 border border-red-500/30' : 'bg-emerald-500/10 border border-emerald-500/30'
+                }`}>
+                  {isDeduct ? <Minus size={20} className="text-red-400" /> : <Zap size={20} className="text-emerald-400" />}
                 </div>
-                <p className="text-emerald-400 font-medium">{grantSuccess}</p>
+                <p className={`font-medium ${isDeduct ? 'text-red-300' : 'text-emerald-400'}`}>{success}</p>
                 <div className="flex gap-3">
                   <Button variant="outline" size="sm" className="flex-1" onClick={closeModal}>Done</Button>
-                  <Button size="sm" className="flex-1" onClick={() => setGrantSuccess(null)}>Grant More</Button>
+                  <Button size="sm" className="flex-1" onClick={() => setSuccess(null)}>
+                    {isDeduct ? 'Deduct More' : 'Grant More'}
+                  </Button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleGrant} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Points to grant</label>
+                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
+                    isDeduct ? 'text-red-400' : 'text-[#D4A017]'
+                  }`}>
+                    {isDeduct ? 'Points to deduct' : 'Points to grant'}
+                  </label>
                   <input
                     type="number"
                     value={points}
-                    onChange={(e) => setPoints(e.target.value)}
-                    placeholder="e.g. 50"
+                    onChange={(e) => { setPoints(e.target.value); setError(null) }}
+                    placeholder={isDeduct ? 'e.g. 20' : 'e.g. 50'}
                     min={1}
                     required
                     autoFocus
                     className={inputClass}
                   />
+                  {isDeduct && (
+                    <p className="text-[11px] text-white/30 mt-1.5">
+                      Available: {formatPoints(selectedUser.monthly_points)} this month · {formatPoints(selectedUser.total_points)} all-time
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Reason</label>
+                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+                    Reason <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="text"
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder="e.g. Weekly community activity — 42 messages"
+                    onChange={(e) => { setReason(e.target.value); setError(null) }}
+                    placeholder={isDeduct
+                      ? 'e.g. Penalty: shared inappropriate content'
+                      : 'e.g. Weekly community activity \u2014 42 messages'}
                     required
                     className={inputClass}
                   />
+                  <p className="text-[11px] text-white/25 mt-1.5">
+                    {'Required for accountability \u2014 visible on the public profile.'}
+                  </p>
                 </div>
+
+                {error && (
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/25">
+                    <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-red-300">{error}</p>
+                  </div>
+                )}
+
                 <div className="flex gap-3 pt-2">
                   <Button type="button" variant="outline" size="sm" className="flex-1" onClick={closeModal}>Cancel</Button>
-                  <Button type="submit" size="sm" className="flex-1" disabled={granting || !points || !reason}>
-                    {granting ? 'Granting...' : `Grant ${points ? `+${points}` : ''} Points`}
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className={`flex-1 ${isDeduct ? '!bg-red-500/15 !border-red-500/40 !text-red-300 hover:!bg-red-500/25' : ''}`}
+                    disabled={submitting || !points || !reason}
+                  >
+                    {submitting
+                      ? (isDeduct ? 'Deducting...' : 'Granting...')
+                      : (isDeduct
+                          ? `Deduct ${points ? `−${points}` : ''} Points`
+                          : `Grant ${points ? `+${points}` : ''} Points`)}
                   </Button>
                 </div>
               </form>

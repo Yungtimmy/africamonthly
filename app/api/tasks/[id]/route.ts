@@ -30,6 +30,35 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     update.points = pts
   }
 
+  // Admins can explicitly set / clear the expiry. null clears it (no auto-deactivate).
+  if ('expiresAt' in body) {
+    if (body.expiresAt === null) {
+      update.expires_at = null
+    } else if (typeof body.expiresAt === 'string') {
+      if (Number.isNaN(Date.parse(body.expiresAt))) {
+        return NextResponse.json({ error: 'Invalid expiresAt value' }, { status: 400 })
+      }
+      update.expires_at = new Date(body.expiresAt).toISOString()
+    }
+  }
+
+  // Reactivating a task extends it to a fresh +3-day window IFF the current
+  // expires_at is missing or already in the past. If the admin previously set
+  // a future expiry (or passes `expiresAt` in this call), we preserve their
+  // intent. This enforces the default 3-day competition window without
+  // silently stomping on a custom duration.
+  if (update.is_active === true && !('expiresAt' in body)) {
+    const { data: current } = await supabase
+      .from('tasks')
+      .select('expires_at')
+      .eq('id', id)
+      .single()
+    const stillFuture = current?.expires_at && new Date(current.expires_at) > new Date()
+    if (!stillFuture) {
+      update.expires_at = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  }
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
   }
