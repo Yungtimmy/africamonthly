@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const [{ data: submissions }, { data: grants }] = await Promise.all([
     supabase
       .from('submissions')
-      .select('id, points_awarded, reviewed_at, created_at, tasks(title, task_type, x_actions)')
+      .select('id, points_awarded, awarded_actions, reviewed_at, created_at, tasks(title, task_type, x_actions)')
       .eq('user_id', id)
       .eq('status', 'approved')
       .order('reviewed_at', { ascending: false }),
@@ -52,8 +52,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     } | null
 
     let label = task?.title ?? 'Task'
+    // For X-post, show exactly what the admin awarded (per-action partial),
+    // falling back to the task's full required actions for legacy rows.
     if (task?.task_type === 'x_post') {
-      label = formatXActionsLabel(task.x_actions)
+      label = formatXActionsLabel(s.awarded_actions ?? task.x_actions)
     }
 
     history.push({

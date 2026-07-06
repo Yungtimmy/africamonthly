@@ -35,6 +35,7 @@ create table if not exists submissions (
   proof_url text not null,
   status text not null default 'pending' check (status in ('pending','approved','rejected')),
   points_awarded integer,
+  awarded_actions text[],
   reviewed_by uuid references users(id),
   reviewed_at timestamptz,
   created_at timestamptz not null default now()

@@ -33,6 +33,17 @@ const ACTION_LABELS: Record<XAction, string> = {
   repost: 'Repost / Quote',
 }
 
+/** Public label for a single X action (e.g. 'like' -> 'Like'). Falls back to the raw string. */
+export function getXActionLabel(action: string): string {
+  if (action in ACTION_LABELS) return ACTION_LABELS[action as XAction]
+  return action
+}
+
+/** Points for a single X action; returns 0 for unknown actions. */
+export function getXActionPoints(action: string): number {
+  return X_ACTION_POINTS[action as XAction] ?? 0
+}
+
 export function formatXActionsLabel(actions: string[] | null | undefined): string {
   if (!actions?.length) return 'X Task'
   return normalizeXActions(actions).map((a) => ACTION_LABELS[a]).join(' + ')

@@ -20,7 +20,7 @@ async function getPublicProfile(userId: string) {
   const [{ data: submissions }, { data: grants }] = await Promise.all([
     supabase
       .from('submissions')
-      .select('id, points_awarded, reviewed_at, created_at, tasks(title, task_type, x_actions)')
+      .select('id, points_awarded, awarded_actions, reviewed_at, created_at, tasks(title, task_type, x_actions)')
       .eq('user_id', userId)
       .eq('status', 'approved')
       .order('reviewed_at', { ascending: false }),
@@ -35,7 +35,11 @@ async function getPublicProfile(userId: string) {
     ...(submissions ?? []).map((s) => {
       const task = s.tasks as { title?: string; task_type?: string; x_actions?: string[] | null } | null
       let label = task?.title ?? 'Task'
-      if (task?.task_type === 'x_post') label = formatXActionsLabel(task.x_actions)
+      // For X-post, show exactly what the admin awarded (per-action partial),
+      // falling back to the task's full required actions for legacy rows.
+      if (task?.task_type === 'x_post') {
+        label = formatXActionsLabel(s.awarded_actions ?? task.x_actions)
+      }
       return {
         id: s.id,
         label,

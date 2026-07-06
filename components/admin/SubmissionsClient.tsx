@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Link2 } from 'lucide-react'
+import { ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Link2, Check } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatRelativeTime } from '@/lib/utils'
-import { formatXActionsLabel } from '@/lib/points'
+import { calculateXPoints, formatXActionsLabel, getXActionLabel, getXActionPoints } from '@/lib/points'
 
 interface Submission {
   id: string
@@ -21,15 +21,54 @@ interface Submission {
 export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: Submission[] }) {
   const [submissions, setSubmissions] = useState(initialSubmissions)
   const [loading, setLoading] = useState<string | null>(null)
+  // Per-submission selected X actions. Absent entries default to the task's
+  // full x_actions list (pre-checked) when read via getActions().
+  const [selectedActions, setSelectedActions] = useState<Record<string, string[]>>({})
+
+  function getActions(sub: Submission): string[] {
+    if (selectedActions[sub.id] !== undefined) return selectedActions[sub.id]
+    return sub.tasks?.x_actions ?? []
+  }
+
+  function toggleAction(submissionId: string, action: string) {
+    setSelectedActions((prev) => {
+      const sub = submissions.find((s) => s.id === submissionId)
+      if (!sub) return prev
+      const current = prev[submissionId] ?? sub.tasks?.x_actions ?? []
+      const next = current.includes(action)
+        ? current.filter((a) => a !== action)
+        : [...current, action]
+      return { ...prev, [submissionId]: next }
+    })
+  }
+
+  function getAwardedPoints(sub: Submission): number {
+    if (sub.tasks?.task_type !== 'x_post') return sub.tasks?.points ?? 0
+    const taskActions = sub.tasks?.x_actions ?? []
+    // Legacy X-post with no x_actions defined — fall back to the full task points
+    // and skip the checklist entirely.
+    if (taskActions.length === 0) return sub.tasks?.points ?? 0
+    return calculateXPoints(getActions(sub))
+  }
 
   async function handleReview(id: string, action: 'approve' | 'reject') {
     if (loading) return
+    const sub = submissions.find((s) => s.id === id)
     setLoading(id)
     try {
+      const body: Record<string, unknown> = { action }
+      if (action === 'approve' && sub?.tasks?.task_type === 'x_post') {
+        const taskActions = sub.tasks?.x_actions ?? []
+        if (taskActions.length > 0) {
+          body.awardedActions = getActions(sub)
+          body.points = calculateXPoints(getActions(sub))
+        }
+      }
+
       const res = await fetch(`/api/submissions/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify(body),
       })
       if (res.ok) {
         setSubmissions((prev) => prev.filter((s) => s.id !== id))
@@ -60,6 +99,10 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
       {submissions.map((sub) => {
         const isProcessing = loading === sub.id || loading !== null
         const isXPost = sub.tasks?.task_type === 'x_post'
+        const taskXActions = sub.tasks?.x_actions ?? []
+        const showChecklist = isXPost && taskXActions.length > 0
+        const awardedPoints = getAwardedPoints(sub)
+        const canApprove = awardedPoints > 0
         return (
           <div
             key={sub.id}
@@ -109,6 +152,47 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
               )}
             </div>
 
+            {/* Awarded actions checklist (X-post only) */}
+            {showChecklist && (
+              <div className="bg-white/4 rounded-xl p-3 space-y-1">
+                <p className="text-xs text-white/30 mb-2">Awarded actions</p>
+                {taskXActions.map((action) => {
+                  const checked = getActions(sub).includes(action)
+                  return (
+                    <button
+                      key={action}
+                      type="button"
+                      disabled={isProcessing}
+                      onClick={() => toggleAction(sub.id, action)}
+                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-left ${
+                        checked ? 'bg-white/4' : 'bg-transparent hover:bg-white/2'
+                      }`}
+                    >
+                      <span
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                          checked
+                            ? 'bg-[#D4A017] border-[#D4A017]'
+                            : 'bg-white/4 border-white/15'
+                        }`}
+                      >
+                        {checked && <Check size={11} className="text-black" strokeWidth={3.5} />}
+                      </span>
+                      <span className={`text-sm ${checked ? 'text-white' : 'text-white/55'}`}>
+                        {getXActionLabel(action)}
+                      </span>
+                      <span className="ml-auto text-xs text-white/40 font-mono">
+                        +{getXActionPoints(action)}
+                      </span>
+                    </button>
+                  )
+                })}
+                <div className="flex items-center justify-between pt-2.5 mt-1.5 border-t border-white/5">
+                  <span className="text-xs text-white/40">Awarding</span>
+                  <span className="text-sm font-semibold text-[#D4A017]">+{awardedPoints} pts</span>
+                </div>
+              </div>
+            )}
+
             {/* Proof */}
             <div className="bg-white/4 rounded-xl p-3 space-y-2">
               <p className="text-xs text-white/30 flex items-center gap-1.5">
@@ -143,11 +227,12 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
               </Button>
               <Button
                 size="sm"
-                disabled={isProcessing}
+                disabled={isProcessing || !canApprove}
                 onClick={() => handleReview(sub.id, 'approve')}
-                className="flex-1 flex items-center justify-center gap-2 !bg-emerald-700 hover:!bg-emerald-600"
+                className="flex-1 flex items-center justify-center gap-2 !bg-emerald-700 hover:!bg-emerald-600 disabled:opacity-50"
               >
-                <CheckCircle size={16} /> {isProcessing ? 'Processing...' : 'Approve'}
+                <CheckCircle size={16} />{' '}
+                {isProcessing ? 'Processing...' : `Approve for +${awardedPoints}`}
               </Button>
             </div>
           </div>
