@@ -15,6 +15,11 @@
 -- success (1) from floor violation / missing user (0). For grants a 0
 -- means "user not found"; for deductions a 0 means "floor would be hit".
 -- Caller is expected to have validated the user exists before calling.
+--
+-- DROP is required when upgrading from the original void-returning RPC;
+-- CREATE OR REPLACE alone cannot change the return type.
+
+drop function if exists increment_user_points(uuid, integer);
 
 create or replace function increment_user_points(p_user_id uuid, p_delta integer)
 returns integer

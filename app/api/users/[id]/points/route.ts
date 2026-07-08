@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+
+function maxDeductible(monthly: number, total: number): number {
+  return Math.max(0, Math.min(monthly, total))
+}
+
+function deductionError(amount: number, monthly: number, total: number): string {
+  const max = maxDeductible(monthly, total)
+  if (max === 0) {
+    return 'User has 0 points available to deduct (monthly and all-time are already at zero).'
+  }
+  return `Cannot deduct ${amount} points. User has ${monthly} monthly and ${total} all-time — maximum deduction is ${max}.`
+}
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -18,15 +31,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'Points must be a non-zero number' }, { status: 400 })
   }
 
-  const { data: adminUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('discord_id', session.user.discordId)
-    .single()
+  const grantedBy = session.user.id
 
-  // Read the user's current balances so we can echo accurate state back to the
-  // caller in the response. Floor enforcement itself happens atomically inside
-  // the RPC (see supabase/migration_floor_check.sql).
   const { data: targetUser } = await supabase
     .from('users')
     .select('id, monthly_points, total_points')
@@ -35,40 +41,64 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  // Atomic increment + floor check. Surface DB errors and floor violations
-  // explicitly so a silent RPC failure can never produce a recorded grant
-  // without moving the user's points.
+  if (pts < 0) {
+    const deductAmount = Math.abs(pts)
+    const max = maxDeductible(targetUser.monthly_points, targetUser.total_points)
+    if (deductAmount > max) {
+      return NextResponse.json(
+        { error: deductionError(deductAmount, targetUser.monthly_points, targetUser.total_points) },
+        { status: 422 }
+      )
+    }
+  }
+
   const { data: affected, error: rpcErr } = await supabase.rpc('increment_user_points', {
     p_user_id: id,
     p_delta: pts,
   })
+
   if (rpcErr) {
     return NextResponse.json({ error: rpcErr.message }, { status: 500 })
   }
-  if (!affected) {
-    // For grants (pts > 0) a 0 row count means the user vanished between the
-    // SELECT and the RPC update — surface as 404. For deductions (pts < 0) it
-    // means the atomic floor check rejected the adjustment.
+
+  const { data: updatedUser, error: refetchErr } = await supabase
+    .from('users')
+    .select('monthly_points, total_points')
+    .eq('id', id)
+    .single()
+
+  if (refetchErr || !updatedUser) {
+    return NextResponse.json({ error: 'Points updated but failed to read new balance' }, { status: 500 })
+  }
+
+  const expectedMonthly = targetUser.monthly_points + pts
+  const expectedTotal = targetUser.total_points + pts
+  const balanceApplied =
+    updatedUser.monthly_points === expectedMonthly && updatedUser.total_points === expectedTotal
+
+  // RPC returns 1 on success, 0 on floor violation. Void-returning RPCs return null even
+  // on success — verify by comparing balances instead of trusting the return value alone.
+  if (affected === 0 || !balanceApplied) {
     return NextResponse.json(
       pts < 0
-        ? { error: 'Deduction would push points below zero' }
+        ? { error: deductionError(Math.abs(pts), targetUser.monthly_points, targetUser.total_points) }
         : { error: 'User not found' },
       { status: pts < 0 ? 422 : 404 }
     )
   }
 
-  // Record the signed value so history shows direction.
+  if (!grantedBy) {
+    return NextResponse.json({ error: 'Admin session missing user id — sign in again' }, { status: 401 })
+  }
+
   const { error: insertErr } = await supabase.from('point_grants').insert({
     user_id: id,
     points: pts,
     reason: reasonText,
-    granted_by: adminUser?.id,
+    granted_by: grantedBy,
   })
+
   if (insertErr) {
-    // Compensate the point change so history and balance stay in sync.
-    // If compensation itself fails (network blip), the balance stays
-    // inflated but the grants row is missing \u2014 surface both errors so
-    // the admin knows to reconcile manually.
     const { error: compErr } = await supabase.rpc('increment_user_points', {
       p_user_id: id,
       p_delta: -pts,
@@ -76,8 +106,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const detail = compErr
       ? `${insertErr.message}; compensating rollback also failed: ${compErr.message}`
       : insertErr.message
-    // Server-side log for postmortem: if both the insert and rollback fail,
-    // admin can't reproduce, but the log lets ops see the divergent state.
     console.error('[points-award] failed and rollback may have failed', {
       userId: id,
       points: pts,
@@ -87,10 +115,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: detail }, { status: 500 })
   }
 
+  revalidatePath('/leaderboard')
+  revalidatePath(`/users/${id}`)
+
   return NextResponse.json({
     success: true,
     delta: pts,
-    monthly_points: targetUser.monthly_points + pts,
-    total_points: targetUser.total_points + pts,
+    monthly_points: updatedUser.monthly_points,
+    total_points: updatedUser.total_points,
   })
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Zap, Minus, X, Wallet, Copy, Check, AlertTriangle } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -55,6 +56,7 @@ function ConnectionChips({ user }: { user: User }) {
 }
 
 export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] }) {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [searching, setSearching] = useState(false)
@@ -93,12 +95,24 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
     setError(null)
   }
 
+  const maxDeduct = selectedUser
+    ? Math.max(0, Math.min(selectedUser.monthly_points, selectedUser.total_points))
+    : 0
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedUser) return
     const abs = Number(points)
     if (!Number.isFinite(abs) || abs <= 0) {
       setError('Enter a positive number of points.')
+      return
+    }
+    if (mode === 'deduct' && abs > maxDeduct) {
+      setError(
+        maxDeduct === 0
+          ? 'This user has no points left to deduct.'
+          : `Cannot deduct ${abs} — maximum is ${maxDeduct} (${formatPoints(selectedUser.monthly_points)} monthly, ${formatPoints(selectedUser.total_points)} all-time).`
+      )
       return
     }
     const signedDelta = mode === 'grant' ? abs : -abs
@@ -121,11 +135,21 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
           u.id === selectedUser.id
             ? {
                 ...u,
-                monthly_points: u.monthly_points + signedDelta,
-                total_points: u.total_points + signedDelta,
+                monthly_points: typeof data.monthly_points === 'number' ? data.monthly_points : u.monthly_points + signedDelta,
+                total_points: typeof data.total_points === 'number' ? data.total_points : u.total_points + signedDelta,
               }
             : u
         ))
+        setSelectedUser((prev) =>
+          prev && prev.id === selectedUser.id
+            ? {
+                ...prev,
+                monthly_points: typeof data.monthly_points === 'number' ? data.monthly_points : prev.monthly_points + signedDelta,
+                total_points: typeof data.total_points === 'number' ? data.total_points : prev.total_points + signedDelta,
+              }
+            : prev
+        )
+        router.refresh()
       } else {
         setError(typeof data?.error === 'string' ? data.error : 'Request failed')
       }
@@ -284,13 +308,15 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                     onChange={(e) => { setPoints(e.target.value); setError(null) }}
                     placeholder={isDeduct ? 'e.g. 20' : 'e.g. 50'}
                     min={1}
+                    max={isDeduct ? maxDeduct || undefined : undefined}
                     required
                     autoFocus
                     className={inputClass}
                   />
                   {isDeduct && (
                     <p className="text-[11px] text-white/30 mt-1.5">
-                      Available: {formatPoints(selectedUser.monthly_points)} this month · {formatPoints(selectedUser.total_points)} all-time
+                      Max deduction: <span className="text-red-300/90 font-semibold">{maxDeduct}</span>
+                      {' '}(monthly {formatPoints(selectedUser.monthly_points)} · all-time {formatPoints(selectedUser.total_points)})
                     </p>
                   )}
                 </div>
