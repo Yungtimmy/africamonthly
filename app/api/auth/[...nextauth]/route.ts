@@ -10,6 +10,10 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      // Discord now sends `iss=https://discord.com` on the OAuth callback (RFC 9207).
+      // openid-client rejects that unless the provider has a matching issuer configured
+      // ("issuer must be configured on the issuer"), which broke every Discord sign-in.
+      issuer: 'https://discord.com',
     }),
   ],
   callbacks: {
@@ -26,7 +30,7 @@ export const authOptions: NextAuthOptions = {
       const discordId = discordProfile.id
       const isAdmin = adminIds.includes(discordId)
 
-      await supabase.from('users').upsert(
+      const { error: upsertError } = await supabase.from('users').upsert(
         {
           discord_id: discordId,
           discord_username: discordProfile.global_name || discordProfile.username,
@@ -36,6 +40,11 @@ export const authOptions: NextAuthOptions = {
         },
         { onConflict: 'discord_id' }
       )
+
+      if (upsertError) {
+        // Don't block sign-in, but make the failure visible in Vercel logs.
+        console.error('[auth] users upsert failed for discord_id', discordId, upsertError)
+      }
 
       return true
     },
@@ -78,7 +87,9 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
-  pages: { signIn: '/' },
+  // Errors (OAuthCallback, Callback, AccessDenied, ...) land on the homepage as
+  // /?error=<code>; the homepage now shows a banner instead of failing silently.
+  pages: { signIn: '/', error: '/' },
 }
 
 const handler = NextAuth(authOptions)

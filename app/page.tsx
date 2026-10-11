@@ -21,9 +21,28 @@ async function getTopUsers() {
   }
 }
 
-export default async function HomePage() {
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  OAuthCallback:
+    'Discord sign-in could not be completed. Please try again in your normal browser (not an in-app browser) and make sure cookies are enabled.',
+  OAuthSignin: 'Could not start Discord sign-in. Please try again.',
+  Callback: 'Something went wrong while finishing Discord sign-in. Please try again.',
+  AccessDenied: 'Your Discord account was not allowed to sign in.',
+  Configuration: 'Sign-in is temporarily unavailable. Please try again later.',
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>
+}) {
   const session = await auth()
   if (session?.user) redirect('/tasks')
+
+  const rawError = (await searchParams)?.error
+  const authError = Array.isArray(rawError) ? rawError[0] : rawError
+  const authErrorMessage = authError
+    ? AUTH_ERROR_MESSAGES[authError] ?? `Sign-in failed (${authError}). Please try again.`
+    : null
 
   const topUsers = await getTopUsers()
   const daysLeft = getDaysUntilEndOfMonth()
@@ -31,6 +50,14 @@ export default async function HomePage() {
 
   return (
     <div className="relative">
+      {authErrorMessage && (
+        <div
+          role="alert"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,560px)] rounded-xl border border-red-500/40 bg-red-950/90 px-4 py-3 text-sm text-red-100 shadow-lg backdrop-blur"
+        >
+          {authErrorMessage}
+        </div>
+      )}
 
       {/* ── CINEMATIC HERO ─────────────────────────────────────── */}
       <section className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden hero-cinematic">
