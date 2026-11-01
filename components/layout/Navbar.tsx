@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -56,8 +55,12 @@ function ProfileLink({
   )
 }
 
+function closeMobileNav() {
+  const input = document.getElementById('mobile-nav') as HTMLInputElement | null
+  if (input) input.checked = false
+}
+
 export function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
   const isProfile = pathname === '/profile'
@@ -66,6 +69,7 @@ export function Navbar() {
 
   return (
     <>
+      <input id="mobile-nav" type="checkbox" className="peer sr-only" aria-label="Open menu" />
       <nav className="sticky top-0 z-[30] glass-nav pt-[env(safe-area-inset-top)]">
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent" />
 
@@ -137,43 +141,36 @@ export function Navbar() {
                 active={isProfile}
               />
             )}
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-white/60 hover:text-white hover:bg-white/5 border border-white/8 transition-colors"
+            <label
+              htmlFor="mobile-nav"
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-white/60 hover:text-white hover:bg-white/5 border border-white/8 transition-colors cursor-pointer"
               aria-label="Open menu"
             >
               <Menu size={20} />
-            </button>
+            </label>
           </div>
         </div>
       </nav>
 
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-[40] bg-[#0A0F1E]/80 backdrop-blur-sm md:hidden"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden
-        />
-      )}
+      <label
+        htmlFor="mobile-nav"
+        className="fixed inset-0 z-[40] hidden bg-[#0A0F1E]/60 backdrop-blur-sm peer-checked:block md:!hidden"
+        aria-hidden="true"
+      />
 
       <div
-        className={cn(
-          'fixed top-0 right-0 h-full w-[min(88vw,320px)] z-[50] glass-drawer transition-transform duration-300 ease-out md:hidden',
-          mobileOpen ? 'translate-x-0' : 'translate-x-full'
-        )}
+        className="fixed top-0 right-0 z-[50] h-dvh w-[min(88vw,320px)] glass-drawer translate-x-full peer-checked:translate-x-0 transition-transform duration-300 ease-out md:!hidden"
       >
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent" />
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           <span className="font-serif font-bold text-white">Menu</span>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            aria-label="Close menu"
-            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-white/50 hover:text-white hover:bg-white/5"
+          <label
+            htmlFor="mobile-nav"
+            aria-hidden="true"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-white/50 hover:text-white hover:bg-white/5 cursor-pointer"
           >
             <X size={20} />
-          </button>
+          </label>
         </div>
 
         <nav className="p-3 space-y-1">
@@ -181,7 +178,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileNav}
               className={cn(
                 'block px-4 py-3.5 min-h-[48px] rounded-xl text-sm font-medium transition-all',
                 pathname === link.href
@@ -195,7 +192,7 @@ export function Navbar() {
           {session?.user?.isAdmin && (
             <Link
               href="/admin"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileNav}
               className={cn(
                 'block px-4 py-3.5 min-h-[48px] rounded-xl text-sm font-medium transition-all',
                 pathname.startsWith('/admin')
