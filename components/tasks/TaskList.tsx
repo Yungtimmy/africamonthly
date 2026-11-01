@@ -77,14 +77,15 @@ export function TaskList({ tasks, isLoggedIn }: TaskListProps) {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+            type="button"
+            className={`px-4 min-h-[44px] rounded-full text-xs font-semibold border transition-all ${
               filter === key
-                ? 'bg-[#00D4FF]/10 border-[#00D4FF]/40 text-[#00D4FF]'
-                : 'bg-white/3 border-white/8 text-white/40 hover:text-white/70 hover:border-white/20'
+                ? 'bg-[#00D4FF]/15 border-[#00D4FF]/50 text-[#00D4FF]'
+                : 'glass-chip text-white/80 hover:text-white'
             }`}
           >
             {label}
-            <span className={`ml-1.5 ${filter === key ? 'text-[#00D4FF]/60' : 'text-white/25'}`}>
+            <span className={`ml-1.5 ${filter === key ? 'text-[#00D4FF]/60' : 'text-white/55'}`}>
               {counts[key]}
             </span>
           </button>
@@ -92,7 +93,7 @@ export function TaskList({ tasks, isLoggedIn }: TaskListProps) {
       </div>
 
       {visibleTasks.length === 0 ? (
-        <div className="text-center py-16 text-white/30 text-sm">No tasks match this filter.</div>
+        <div className="text-center py-16 text-white/60 text-sm">No tasks match this filter.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {visibleTasks.map((task) => {

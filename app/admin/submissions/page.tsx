@@ -15,7 +15,7 @@ export default async function AdminSubmissionsPage() {
   return (
     <div>
       <h1 className="font-serif text-3xl font-bold text-white mb-2">Submissions</h1>
-      <p className="text-white/30 text-sm mb-8">Review and approve pending proof links.</p>
+      <p className="text-white/60 text-sm mb-8">Review and approve pending proof links.</p>
       <SubmissionsClient initialSubmissions={submissions} />
     </div>
   )

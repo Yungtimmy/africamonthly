@@ -23,7 +23,7 @@ export default async function AdminTasksPage() {
   return (
     <div>
       <h1 className="font-serif text-3xl font-bold text-white mb-2">Tasks</h1>
-      <p className="text-white/30 text-sm mb-8">Create and manage monthly tasks.</p>
+      <p className="text-white/60 text-sm mb-8">Create and manage monthly tasks.</p>
       <AdminTasksClient initialTasks={tasks} />
     </div>
   )

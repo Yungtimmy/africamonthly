@@ -86,7 +86,7 @@ export default async function HomePage({
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center pt-16 pb-24 sm:pb-28">
           {/* Live badge */}
-          <div className="inline-flex items-center gap-2 mb-8 sm:mb-10 px-4 py-2 rounded-full bg-black/30 border border-white/10 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 mb-8 sm:mb-10 px-4 py-2 rounded-full glass-chip">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
             <Trophy className="w-3.5 h-3.5 text-[#00D4FF]" />
             <span className="text-[10px] sm:text-xs font-semibold text-white/60 uppercase tracking-[0.2em]">
@@ -143,7 +143,7 @@ export default async function HomePage({
           </div>
 
           {/* Product title */}
-          <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.35em] text-white/35 mb-4">
+          <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.35em] text-white/65 mb-4">
             Africa Monthly
           </p>
 
@@ -195,14 +195,14 @@ export default async function HomePage({
             ].map((s) => (
               <div
                 key={s.label}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-[#00D4FF]/25 transition-all duration-300 backdrop-blur-md"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl glass-panel hover:border-[#00D4FF]/35 transition-all duration-300"
               >
                 {s.icon}
                 <div className="text-left">
                   <span className={`font-serif font-bold text-lg sm:text-xl block leading-none ${s.glow === 'gold' ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>
                     {s.value}
                   </span>
-                  <span className="text-white/30 text-[10px] sm:text-xs uppercase tracking-wider">{s.label}</span>
+                  <span className="text-white/60 text-[10px] sm:text-xs uppercase tracking-wider">{s.label}</span>
                 </div>
               </div>
             ))}
@@ -225,11 +225,11 @@ export default async function HomePage({
         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/20 to-transparent mb-24" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-10 sm:mb-16 text-center">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full glass-chip border-[#00D4FF]/30">
               <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">How It Works</span>
             </div>
             <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white mb-3">Three steps to the top</h2>
-            <p className="text-white/40 max-w-md mx-auto">Join the competition, earn points across multiple activities, and claim your reward.</p>
+            <p className="text-white/70 max-w-md mx-auto">Join the competition, earn points across multiple activities, and claim your reward.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -264,7 +264,7 @@ export default async function HomePage({
             ].map((item) => (
               <div
                 key={item.step}
-                className={`relative rounded-2xl p-5 sm:p-8 transition-all duration-300 cursor-default overflow-hidden ${item.glowClass} bg-white/3 border border-white/6 backdrop-blur-sm hover:-translate-y-1`}
+                className={`relative rounded-2xl p-5 sm:p-8 transition-all duration-300 cursor-default overflow-hidden ${item.glowClass} glass-panel hover:-translate-y-1`}
               >
                 {/* Top glow line */}
                 <div
@@ -280,7 +280,7 @@ export default async function HomePage({
                   </span>
                 </div>
                 <h3 className="font-serif text-xl font-semibold text-white mb-3">{item.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -297,18 +297,23 @@ export default async function HomePage({
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-4 mb-8 sm:mb-12">
               <div>
-                <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full glass-chip border-[#D4A017]/35">
                   <Users className="w-3.5 h-3.5 text-[#D4A017]" />
                   <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Live Rankings</span>
                 </div>
                 <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white">{monthLabel}</h2>
-                <p className="text-white/40 mt-1">Current standings — {daysLeft} days remaining</p>
+                <p className="text-white/70 mt-1">Current standings — {daysLeft} days remaining</p>
               </div>
-              <Link href="/leaderboard">
-                <Button variant="ghost" size="sm">
-                  Full board <ArrowRight size={16} />
-                </Button>
-              </Link>
+              <div className="flex flex-col items-stretch sm:items-end gap-2">
+                <Link href="/leaderboard">
+                  <Button variant="ghost" size="sm">
+                    Full board <ArrowRight size={16} />
+                  </Button>
+                </Link>
+                <Link href="/leaderboard/history" className="text-sm font-semibold text-[#00D4FF] hover:text-white min-h-[44px] inline-flex items-center justify-end">
+                  Past leaderboards
+                </Link>
+              </div>
             </div>
 
             <div className="space-y-3 max-w-2xl">
@@ -317,14 +322,14 @@ export default async function HomePage({
                   { bar: 'bg-[#D4A017]', border: 'border-[#D4A017]/25', rank: 'text-[#D4A017]', glow: 'hover:shadow-[0_0_20px_rgba(212,160,23,0.1)]' },
                   { bar: 'bg-[#00D4FF]', border: 'border-[#00D4FF]/20', rank: 'text-[#00D4FF]', glow: 'hover:shadow-[0_0_20px_rgba(0,212,255,0.1)]' },
                   { bar: 'bg-amber-700', border: 'border-amber-700/20', rank: 'text-amber-600', glow: '' },
-                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/30', glow: '' },
-                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/30', glow: '' },
+                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/60', glow: '' },
+                  { bar: 'bg-white/10', border: 'border-white/5', rank: 'text-white/60', glow: '' },
                 ]
                 const c = configs[i] ?? configs[3]
                 return (
                   <div
                     key={u.id}
-                    className={`flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-200 bg-white/3 border backdrop-blur-sm ${c.border} ${c.glow}`}
+                    className={`glass-panel glass-panel-interactive flex items-center gap-4 rounded-2xl px-5 py-4 min-h-[64px] ${c.border} ${c.glow}`}
                   >
                     <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
                     <span className={`font-serif font-bold text-xl w-5 ${c.rank}`}>{i + 1}</span>
@@ -333,7 +338,7 @@ export default async function HomePage({
                     <span className={`font-serif font-bold text-lg ${i === 0 ? 'text-[#D4A017]' : 'text-[#00D4FF]'}`}>
                       {formatPoints(u.monthly_points)}
                     </span>
-                    <span className="text-xs text-white/20">pts</span>
+                    <span className="text-xs text-white/55">pts</span>
                   </div>
                 )
               })}
@@ -349,7 +354,7 @@ export default async function HomePage({
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.06)_0%,transparent_70%)]" />
         </div>
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-[#00D4FF]/6 border border-[#00D4FF]/15 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full glass-chip border-[#00D4FF]/30">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] animate-pulse shadow-[0_0_6px_#00D4FF]" />
             <span className="text-xs font-semibold text-[#00D4FF] uppercase tracking-widest">Resets Monthly</span>
           </div>
@@ -359,7 +364,7 @@ export default async function HomePage({
               compete?
             </span>
           </h2>
-          <p className="text-white/40 text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
             Every month is a fresh start. Join with Discord, connect your accounts, and start stacking points from day one.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">

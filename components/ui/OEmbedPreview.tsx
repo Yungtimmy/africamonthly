@@ -7,10 +7,7 @@ export function OEmbedPreview({ url, className }: { url: string; className?: str
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!url) {
-      setHtml(null)
-      return
-    }
+    if (!url) return
     const timer = setTimeout(async () => {
       setLoading(true)
       try {
@@ -33,7 +30,7 @@ export function OEmbedPreview({ url, className }: { url: string; className?: str
   }, [url])
 
   if (!url) return null
-  if (loading) return <p className="text-xs text-white/30 italic">Loading preview...</p>
+  if (loading) return <p className="text-xs text-white/60 italic">Loading preview...</p>
   if (!html) return <p className="text-xs text-red-400/70">Could not load preview for this URL.</p>
 
   return (

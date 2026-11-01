@@ -50,8 +50,8 @@ function Row({
   const { remaining, urgency, isExpired } = useCountdown(task.expires_at)
   return (
     <div
-      className={`bg-white/3 border rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm ${
-        active ? 'border-white/8' : 'border-white/5 opacity-60'
+      className={`glass-panel rounded-xl p-5 flex items-start gap-4 ${
+        active ? '' : 'opacity-70'
       }`}
     >
       <div className="flex-1 min-w-0">
@@ -81,27 +81,27 @@ function Row({
           )}
         </div>
         {!isXPost && task.description && (
-          <p className="text-sm text-white/30 mt-1">{task.description}</p>
+          <p className="text-sm text-white/60 mt-1">{task.description}</p>
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={() => onEdit(task)}
-          className="p-1.5 text-white/30 hover:text-[#00D4FF] transition-colors cursor-pointer"
+          className="p-1.5 text-white/60 hover:text-[#00D4FF] transition-colors cursor-pointer"
           title="Edit task"
         >
           <Pencil size={16} />
         </button>
         <button
           onClick={() => onToggle(task.id, active)}
-          className="p-1.5 text-white/30 hover:text-[#D4A017] transition-colors cursor-pointer"
+          className="p-1.5 text-white/60 hover:text-[#D4A017] transition-colors cursor-pointer"
           title={active ? 'Deactivate' : 'Activate (extends +3 days)'}
         >
           {active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
         </button>
         <button
           onClick={() => onDelete(task.id)}
-          className="p-1.5 text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+          className="p-1.5 text-white/60 hover:text-red-400 transition-colors cursor-pointer"
           title="Delete task"
         >
           <Trash2 size={16} />
@@ -224,7 +224,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   }
 
   const inputClass =
-    'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
+    'glass-field rounded-xl px-4 py-2.5 text-sm min-h-[44px]'
 
   const isEditing = !!editingId
 
@@ -240,7 +240,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <p className="text-white/30 text-sm">{tasks.length} tasks total</p>
+        <p className="text-white/60 text-sm">{tasks.length} tasks total</p>
         <Button size="sm" onClick={() => (showForm && !isEditing ? setShowForm(false) : startCreate())}>
           <Plus size={16} /> Add Task
         </Button>
@@ -249,26 +249,26 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-white/3 border border-white/8 rounded-2xl p-6 space-y-5 backdrop-blur-sm"
+          className="glass-panel rounded-2xl p-6 space-y-5 backdrop-blur-sm"
         >
           <h3 className="font-serif text-lg font-semibold text-white">{isEditing ? 'Edit Task' : 'New Task'}</h3>
 
           {/* Task type toggle — only when creating (type is fixed once created) */}
           {!isEditing && (
             <div>
-              <label className="block text-sm text-white/40 mb-2">Task Type</label>
+              <label className="block text-sm text-white/70 mb-2">Task Type</label>
               <div className="flex gap-2">
                 {(['other_event', 'x_post'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
                     onClick={() => setTaskType(type)}
-                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all ${
+                    className={`flex-1 min-h-[44px] py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all ${
                       taskType === type
                         ? type === 'x_post'
                           ? 'bg-[#00D4FF]/10 border-[#00D4FF]/50 text-[#00D4FF]'
                           : 'bg-[#D4A017]/10 border-[#D4A017]/50 text-[#D4A017]'
-                        : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                        : 'glass-chip text-white/80 hover:text-white'
                     }`}
                   >
                     {type === 'x_post' ? '𝕏 X Post' : 'Other Event'}
@@ -281,7 +281,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           {taskType === 'x_post' ? (
             <>
               <div>
-                <label htmlFor="xurl" className="block text-sm text-white/40 mb-1.5">Post URL</label>
+                <label htmlFor="xurl" className="block text-sm text-white/70 mb-1.5">Post URL</label>
                 <input
                   id="xurl"
                   type="url"
@@ -295,15 +295,15 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
 
               {xUrl && (
                 <div>
-                  <p className="text-xs text-white/30 mb-2">Preview</p>
+                  <p className="text-xs text-white/60 mb-2">Preview</p>
                   <OEmbedPreview url={xUrl} />
                 </div>
               )}
 
               {/* Multi-action checkboxes */}
               <div>
-                <label className="block text-sm text-white/40 mb-2">
-                  Required Actions <span className="text-white/20">(select all that apply)</span>
+                <label className="block text-sm text-white/70 mb-2">
+                  Required Actions <span className="text-white/55">(select all that apply)</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {X_ACTIONS.map(({ value, label, pts }) => {
@@ -313,14 +313,14 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                         key={value}
                         type="button"
                         onClick={() => toggleAction(value)}
-                        className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold border transition-all ${
+                        className={`flex items-center justify-between min-h-[44px] px-4 py-3 rounded-xl text-sm font-semibold border transition-all ${
                           selected
                             ? 'bg-[#00D4FF]/15 border-[#00D4FF]/50 text-[#00D4FF]'
-                            : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
+                            : 'glass-chip text-white/80 hover:text-white'
                         }`}
                       >
                         <span>{label}</span>
-                        <span className={`text-xs ${selected ? 'text-[#D4A017]' : 'text-white/20'}`}>+{pts}</span>
+                        <span className={`text-xs ${selected ? 'text-[#D4A017]' : 'text-white/55'}`}>+{pts}</span>
                       </button>
                     )
                   })}
@@ -339,7 +339,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
           ) : (
             <>
               <div>
-                <label htmlFor="title" className="block text-sm text-white/40 mb-1.5">Title</label>
+                <label htmlFor="title" className="block text-sm text-white/70 mb-1.5">Title</label>
                 <input
                   id="title"
                   type="text"
@@ -351,7 +351,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                 />
               </div>
               <div>
-                <label htmlFor="desc" className="block text-sm text-white/40 mb-1.5">Description</label>
+                <label htmlFor="desc" className="block text-sm text-white/70 mb-1.5">Description</label>
                 <textarea
                   id="desc"
                   value={form.description}
@@ -363,7 +363,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
                 />
               </div>
               <div>
-                <label htmlFor="points" className="block text-sm text-white/40 mb-1.5">Points</label>
+                <label htmlFor="points" className="block text-sm text-white/70 mb-1.5">Points</label>
                 <input
                   id="points"
                   type="number"
@@ -396,10 +396,10 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
       <div className="space-y-3">
         {activeTasks.map(renderRow)}
         {tasks.length === 0 && (
-          <p className="text-center text-white/20 py-8 text-sm">No tasks yet. Create one above.</p>
+          <p className="text-center text-white/55 py-8 text-sm">No tasks yet. Create one above.</p>
         )}
         {tasks.length > 0 && activeTasks.length === 0 && (
-          <p className="text-center text-white/20 py-8 text-sm">No active tasks. Create one or reactivate below.</p>
+          <p className="text-center text-white/55 py-8 text-sm">No active tasks. Create one or reactivate below.</p>
         )}
       </div>
 
@@ -407,7 +407,7 @@ export function AdminTasksClient({ initialTasks }: { initialTasks: Task[] }) {
         <div className="pt-2">
           <button
             onClick={() => setShowInactive((v) => !v)}
-            className="flex items-center gap-1.5 text-xs font-semibold text-white/30 hover:text-white/60 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white/60 transition-colors"
           >
             {showInactive ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             Deactivated ({inactiveTasks.length})

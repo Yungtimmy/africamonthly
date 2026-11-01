@@ -93,3 +93,34 @@ create index if not exists users_monthly_points_idx on users(monthly_points desc
 create index if not exists submissions_user_id_idx on submissions(user_id);
 create index if not exists submissions_task_id_idx on submissions(task_id);
 create index if not exists submissions_status_idx on submissions(status);
+create index if not exists submissions_reviewed_at_idx on submissions (reviewed_at);
+create index if not exists point_grants_created_at_idx on point_grants (created_at);
+create index if not exists point_grants_user_id_idx on point_grants (user_id);
+
+-- Closed-month archives (full standings). See migration_monthly_leaderboards.sql.
+create table if not exists monthly_leaderboards (
+  month_key text primary key,
+  label text not null,
+  closed_at timestamptz not null default now(),
+  source text not null check (source in ('reset', 'reconstructed')),
+  constraint monthly_leaderboards_month_key_fmt check (month_key ~ '^\d{4}-(0[1-9]|1[0-2])$')
+);
+
+create table if not exists monthly_leaderboard_entries (
+  month_key text not null references monthly_leaderboards(month_key) on delete cascade,
+  rank smallint not null check (rank >= 1),
+  user_id uuid references users(id) on delete set null,
+  display_name text not null,
+  avatar_url text,
+  points integer not null check (points > 0),
+  primary key (month_key, rank)
+);
+
+create index if not exists monthly_leaderboard_entries_user_idx
+  on monthly_leaderboard_entries(user_id);
+
+alter table monthly_leaderboards enable row level security;
+alter table monthly_leaderboard_entries enable row level security;
+
+-- snapshot_monthly_leaderboard() and backfill_monthly_leaderboards() are created
+-- by supabase/migration_monthly_leaderboards.sql. Run that file as well.

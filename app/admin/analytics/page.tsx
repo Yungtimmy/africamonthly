@@ -110,16 +110,16 @@ export default async function AnalyticsPage() {
   return (
     <div>
       <h1 className="font-serif text-3xl font-bold text-white mb-2">Analytics</h1>
-      <p className="text-white/30 text-sm mb-8">Engagement and points overview.</p>
+      <p className="text-white/60 text-sm mb-8">Engagement and points overview.</p>
 
       {/* Stat cards — kept at lg:grid-cols-4 for visual consistency with other admin surfaces. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((c) => (
-          <div key={c.label} className="relative rounded-2xl p-6 overflow-hidden bg-white/3 border border-white/8 backdrop-blur-sm">
+          <div key={c.label} className="relative rounded-2xl p-6 overflow-hidden glass-panel">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/30 to-transparent" />
             <div className="mb-4">{c.icon}</div>
             <p className="font-serif font-bold text-3xl text-white">{c.value}</p>
-            <p className="text-xs text-white/30 mt-1">{c.label}</p>
+            <p className="text-xs text-white/60 mt-1">{c.label}</p>
             {c.hint && <p className="text-[10px] text-red-300/70 mt-0.5">{c.hint}</p>}
           </div>
         ))}
@@ -127,12 +127,12 @@ export default async function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Submissions per day */}
-        <div className="rounded-2xl p-6 bg-white/3 border border-white/8 backdrop-blur-sm">
+        <div className="rounded-2xl p-6 glass-panel">
           <h2 className="font-serif text-lg font-semibold text-white mb-5">Submissions — last 14 days</h2>
           <div className="flex items-end gap-1.5 h-40">
             {days.map((d) => (
               <div key={d.key} className="flex-1 flex flex-col items-center justify-end gap-1.5 group">
-                <span className="text-[10px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity">{d.count}</span>
+                <span className="text-[10px] text-white/70 opacity-0 group-hover:opacity-100 transition-opacity">{d.count}</span>
                 <div
                   className="w-full rounded-t bg-gradient-to-t from-[#00D4FF]/40 to-[#00D4FF]/80 min-h-[2px] transition-all"
                   style={{ height: `${(d.count / maxDay) * 100}%` }}
@@ -140,14 +140,14 @@ export default async function AnalyticsPage() {
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2 text-[10px] text-white/20">
+          <div className="flex justify-between mt-2 text-[10px] text-white/55">
             <span>{days[0]?.label}</span>
             <span>{days[days.length - 1]?.label}</span>
           </div>
         </div>
 
         {/* Points by source */}
-        <div className="rounded-2xl p-6 bg-white/3 border border-white/8 backdrop-blur-sm">
+        <div className="rounded-2xl p-6 glass-panel">
           <h2 className="font-serif text-lg font-semibold text-white mb-5">Points by source</h2>
           <div className="space-y-4">
             {sources.map((s) => (
@@ -161,7 +161,7 @@ export default async function AnalyticsPage() {
                 </div>
               </div>
             ))}
-            <p className="text-xs text-white/30 pt-2 flex justify-between">
+            <p className="text-xs text-white/60 pt-2 flex justify-between">
               <span>Approved: {approved}</span>
               <span>Rejected: {rejected}</span>
               <span>Pending: {pending}</span>
@@ -172,15 +172,15 @@ export default async function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top earners */}
-        <div className="rounded-2xl p-6 bg-white/3 border border-white/8 backdrop-blur-sm">
+        <div className="rounded-2xl p-6 glass-panel">
           <h2 className="font-serif text-lg font-semibold text-white mb-5">Top earners (all-time)</h2>
           {topEarners.length === 0 ? (
-            <p className="text-sm text-white/30 py-6 text-center">No users yet.</p>
+            <p className="text-sm text-white/60 py-6 text-center">No users yet.</p>
           ) : (
             <div className="space-y-2">
               {topEarners.map((u, i) => (
                 <div key={u.discord_username + i} className="flex items-center gap-3">
-                  <span className="font-serif font-bold text-white/30 w-5 text-center">{i + 1}</span>
+                  <span className="font-serif font-bold text-white/60 w-5 text-center">{i + 1}</span>
                   <Avatar src={u.discord_avatar ?? undefined} name={u.discord_username} size="sm" />
                   <span className="flex-1 text-sm text-white/80 truncate">{u.discord_username}</span>
                   <span className="text-sm font-bold text-[#D4A017]">{u.total_points.toLocaleString()}</span>
@@ -191,10 +191,10 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* Top grant reasons */}
-        <div className="rounded-2xl p-6 bg-white/3 border border-white/8 backdrop-blur-sm">
+        <div className="rounded-2xl p-6 glass-panel">
           <h2 className="font-serif text-lg font-semibold text-white mb-5">Manual grants by reason</h2>
           {topReasons.length === 0 ? (
-            <p className="text-sm text-white/30 py-6 text-center">No manual grants yet.</p>
+            <p className="text-sm text-white/60 py-6 text-center">No manual grants yet.</p>
           ) : (
             <div className="space-y-2">
               {topReasons.map(([reason, pts]) => (

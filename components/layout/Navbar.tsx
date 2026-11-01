@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 const navLinks = [
   { href: '/', label: 'Home', hideWhenAuthed: true },
   { href: '/leaderboard', label: 'Leaderboard', hideWhenAuthed: false },
+  { href: '/leaderboard/history', label: 'History', hideWhenAuthed: false },
   { href: '/tasks', label: 'Tasks', hideWhenAuthed: false },
 ]
 
@@ -40,7 +41,7 @@ function ProfileLink({
         compact ? 'px-2 py-1.5 max-w-[148px] sm:max-w-[180px]' : 'px-3 py-1.5 hover:bg-white/8',
         active
           ? 'border-[#00D4FF]/35 bg-[#00D4FF]/10 shadow-[0_0_12px_rgba(0,212,255,0.12)]'
-          : 'border-white/8 bg-white/5 hover:border-[#00D4FF]/30'
+          : 'glass-panel hover:border-[#00D4FF]/40'
       )}
       aria-label="Open your dashboard"
     >
@@ -65,7 +66,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[30] bg-[#0A0F1E]/90 backdrop-blur-xl border-b border-white/5 pt-[env(safe-area-inset-top)]">
+      <nav className="sticky top-0 z-[30] glass-nav pt-[env(safe-area-inset-top)]">
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent" />
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center h-14 sm:h-16 gap-3 sm:gap-6">
@@ -87,7 +88,7 @@ export function Navbar() {
                   'px-3 py-2 rounded-lg text-sm font-medium transition-all',
                   pathname === link.href
                     ? 'text-[#00D4FF] bg-[#00D4FF]/10'
-                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                    : 'text-white/75 hover:text-white hover:bg-white/10'
                 )}
               >
                 {link.label}
@@ -100,7 +101,7 @@ export function Navbar() {
                   'px-3 py-2 rounded-lg text-sm font-medium transition-all',
                   pathname.startsWith('/admin')
                     ? 'text-[#D4A017] bg-[#D4A017]/10'
-                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                    : 'text-white/75 hover:text-white hover:bg-white/10'
                 )}
               >
                 Admin
@@ -158,7 +159,7 @@ export function Navbar() {
 
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-[min(88vw,320px)] z-[50] bg-[#0D1525]/98 border-l border-[#00D4FF]/15 backdrop-blur-2xl transition-transform duration-300 ease-out md:hidden',
+          'fixed top-0 right-0 h-full w-[min(88vw,320px)] z-[50] glass-drawer transition-transform duration-300 ease-out md:hidden',
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >

@@ -120,7 +120,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
     <Modal isOpen title="Submit Proof" onClose={onClose}>
       <div className="space-y-5">
         {/* Task summary */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white/4 border border-white/8">
+        <div className="flex items-center justify-between p-3 rounded-xl glass-panel">
           <p className="font-serif text-white font-semibold text-sm">
             {isXPost ? '𝕏 Twitter Task' : task.title}
           </p>
@@ -130,7 +130,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
         {/* X post actions */}
         {isXPost && actions.length > 0 && (
           <div className="rounded-xl bg-[#00D4FF]/5 border border-[#00D4FF]/15 p-4 space-y-3">
-            <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">
+            <p className="text-xs text-white/70 uppercase tracking-wider font-semibold">
               Required: {formatXActionsLabel(actions)}
             </p>
             <div className="space-y-2">
@@ -148,7 +148,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
                   href={task.x_post_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs text-white/40 hover:text-[#00D4FF] transition-colors"
+                  className="inline-flex items-center gap-2 text-xs text-white/70 hover:text-[#00D4FF] transition-colors"
                 >
                   Open on X <ExternalLink size={10} />
                 </a>
@@ -161,7 +161,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
           {/* Screenshot upload */}
           {needsFile && (
             <div>
-              <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
                 {needsUrl ? 'Screenshot (for like/repost)' : 'Screenshot'}
               </label>
               {preview ? (
@@ -180,7 +180,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="w-full flex flex-col items-center gap-3 py-8 rounded-xl border-2 border-dashed border-white/10 hover:border-[#00D4FF]/30 hover:bg-[#00D4FF]/3 transition-all text-white/30 hover:text-white/50"
+                  className="w-full flex flex-col items-center gap-3 py-8 rounded-xl border-2 border-dashed border-white/10 hover:border-[#00D4FF]/30 hover:bg-[#00D4FF]/3 transition-all text-white/60 hover:text-white/50"
                 >
                   <Upload size={24} />
                   <div className="text-center">
@@ -202,7 +202,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
           {/* URL input for reply/quote */}
           {needsUrl && (
             <div>
-              <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
                 <div className="flex items-center gap-1.5">
                   <ImageIcon size={11} />
                   {hasScreenshotAction ? 'Tweet link (for reply/repost)' : 'Your tweet link'}
@@ -213,7 +213,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
                 value={proofUrl}
                 onChange={(e) => setProofUrl(e.target.value)}
                 placeholder="https://x.com/yourname/status/..."
-                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all"
+                className="glass-field rounded-xl px-4 py-3 text-sm min-h-[48px]"
               />
             </div>
           )}
@@ -221,7 +221,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
           {/* For non-X tasks: also allow URL fallback */}
           {!isXPost && !file && (
             <div>
-              <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
                 Or paste a link
               </label>
               <input
@@ -229,7 +229,7 @@ export function SubmissionModal({ task, onClose, onSubmitted }: SubmissionModalP
                 value={proofUrl}
                 onChange={(e) => setProofUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none focus:bg-white/6 transition-all"
+                className="glass-field rounded-xl px-4 py-3 text-sm min-h-[48px]"
               />
             </div>
           )}
