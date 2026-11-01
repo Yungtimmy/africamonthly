@@ -26,7 +26,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             'border border-[#00D4FF]/30 text-[#00D4FF] bg-[#00D4FF]/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF]/60 backdrop-blur-sm':
               variant === 'ghost',
             // Outline
-            'border border-white/10 text-[#E8F0FE] bg-white/4 hover:border-white/20 hover:bg-white/8 backdrop-blur-sm':
+            'glass-panel text-[#E8F0FE] hover:border-white/30':
               variant === 'outline',
             // Danger
             'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30':

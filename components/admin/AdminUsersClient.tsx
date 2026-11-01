@@ -35,7 +35,7 @@ function CopyChip({ icon, label, value, copyValue, accent }: { icon: React.React
         setTimeout(() => setCopied(false), 1200)
       }}
       title={`${label}: ${copyValue ?? value} (click to copy)`}
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/4 border border-white/8 text-[11px] text-white/50 hover:text-white hover:border-white/20 transition-all max-w-[200px]"
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md glass-panel text-[11px] text-white/50 hover:text-white hover:border-white/20 transition-all max-w-[200px]"
     >
       <span className={accent}>{icon}</span>
       <span className="truncate">{value}</span>
@@ -50,7 +50,7 @@ function ConnectionChips({ user }: { user: User }) {
       <CopyChip icon={<span className="text-[11px] font-bold leading-none">D</span>} label="Discord" value={user.discord_username} accent="text-[#5865F2]" />
       {user.wallet_address
         ? <CopyChip icon={<Wallet size={11} />} label="Wallet" value={short(user.wallet_address)} copyValue={user.wallet_address} accent="text-[#D4A017]" />
-        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/20"><Wallet size={11} /> —</span>}
+        : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/5 text-[11px] text-white/55"><Wallet size={11} /> —</span>}
     </div>
   )
 }
@@ -158,7 +158,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
     }
   }
 
-  const inputClass = 'w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all'
+  const inputClass = 'glass-field rounded-xl px-4 py-2.5 text-sm min-h-[44px]'
 
   const filteredUsers = query
     ? users.filter((u) => u.discord_username.toLowerCase().includes(query.toLowerCase()))
@@ -171,14 +171,14 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
       {/* Search */}
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search by Discord username..."
-            className="w-full bg-white/3 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm placeholder:text-white/20 focus:border-[#00D4FF]/40 focus:outline-none transition-all"
+            className="glass-field rounded-xl pl-9 pr-4 py-2.5 text-sm min-h-[44px]"
           />
         </div>
         <Button size="sm" onClick={handleSearch} disabled={searching}>
@@ -191,7 +191,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className="flex items-start gap-2 sm:gap-4 bg-white/3 border border-white/8 rounded-xl px-3 sm:px-5 py-4 transition-all hover:border-[#00D4FF]/30 hover:bg-white/5"
+            className="flex items-start gap-2 sm:gap-4 glass-panel glass-panel-interactive rounded-xl px-3 sm:px-5 py-4 min-h-[64px]"
           >
             <Avatar src={user.discord_avatar} name={user.discord_username} size="sm" />
             <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
             </div>
             <div className="text-right text-sm shrink-0">
               <p className="text-[#D4A017] font-bold">{formatPoints(user.monthly_points)} pts</p>
-              <p className="text-white/30 text-xs">{formatPoints(user.total_points)} total</p>
+              <p className="text-white/60 text-xs">{formatPoints(user.total_points)} total</p>
             </div>
             <div className="flex flex-col gap-1.5 shrink-0 self-center">
               <button
@@ -221,7 +221,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
           </div>
         ))}
         {filteredUsers.length === 0 && (
-          <p className="text-center text-white/20 text-sm py-8">No users found.</p>
+          <p className="text-center text-white/55 text-sm py-8">No users found.</p>
         )}
       </div>
 
@@ -229,7 +229,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0D1525] border border-white/10 p-5 sm:p-7 shadow-2xl">
+          <div className="relative w-full max-w-md rounded-2xl glass-modal p-5 sm:p-7">
             <div
               className={`absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r ${
                 isDeduct ? 'from-transparent via-red-500/60 to-transparent' : 'from-transparent via-[#D4A017]/60 to-transparent'
@@ -242,25 +242,25 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                 <Avatar src={selectedUser.discord_avatar} name={selectedUser.discord_username} size="sm" />
                 <div className="min-w-0">
                   <h3 className="font-serif text-lg font-semibold text-white truncate">{selectedUser.discord_username}</h3>
-                  <p className="text-xs text-white/30">{formatPoints(selectedUser.monthly_points)} pts this month</p>
+                  <p className="text-xs text-white/60">{formatPoints(selectedUser.monthly_points)} pts this month</p>
                   <ConnectionChips user={selectedUser} />
                 </div>
               </div>
-              <button onClick={closeModal} className="text-white/30 hover:text-white transition-colors p-1 shrink-0">
+              <button onClick={closeModal} className="text-white/60 hover:text-white transition-colors p-1 shrink-0">
                 <X size={18} />
               </button>
             </div>
 
             {/* Mode toggle */}
             {!success && (
-              <div className="flex gap-1.5 mb-4 p-1 rounded-xl bg-white/3 border border-white/6">
+              <div className="flex gap-1.5 mb-4 p-1 rounded-xl glass-panel">
                 <button
                   type="button"
                   onClick={() => { setMode('grant'); setPoints(''); setError(null) }}
                   className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                     !isDeduct
                       ? 'bg-[#D4A017]/20 text-[#D4A017] border border-[#D4A017]/30'
-                      : 'text-white/40 hover:text-white/70 border border-transparent'
+                      : 'text-white/70 hover:text-white/70 border border-transparent'
                   }`}
                 >
                   <Zap size={12} /> Grant
@@ -271,7 +271,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                   className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                     isDeduct
                       ? 'bg-red-500/15 text-red-300 border border-red-500/30'
-                      : 'text-white/40 hover:text-white/70 border border-transparent'
+                      : 'text-white/70 hover:text-white/70 border border-transparent'
                   }`}
                 >
                   <Minus size={12} /> Deduct
@@ -314,14 +314,14 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                     className={inputClass}
                   />
                   {isDeduct && (
-                    <p className="text-[11px] text-white/30 mt-1.5">
+                    <p className="text-[11px] text-white/60 mt-1.5">
                       Max deduction: <span className="text-red-300/90 font-semibold">{maxDeduct}</span>
                       {' '}(monthly {formatPoints(selectedUser.monthly_points)} · all-time {formatPoints(selectedUser.total_points)})
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
                     Reason <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -334,7 +334,7 @@ export function AdminUsersClient({ initialUsers = [] }: { initialUsers?: User[] 
                     required
                     className={inputClass}
                   />
-                  <p className="text-[11px] text-white/25 mt-1.5">
+                  <p className="text-[11px] text-white/55 mt-1.5">
                     {'Required for accountability \u2014 visible on the public profile.'}
                   </p>
                 </div>

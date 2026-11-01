@@ -60,8 +60,8 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
       className={cn(
         'relative rounded-2xl p-5 sm:p-6 flex flex-col gap-4 transition-all duration-200 overflow-hidden backdrop-blur-sm group',
         isDone
-          ? 'bg-emerald-900/5 border border-emerald-800/20 opacity-60'
-          : 'bg-white/3 border border-white/8 hover:border-[#00D4FF]/30 hover:bg-white/5'
+          ? 'glass-panel border-emerald-400/25 opacity-70'
+          : 'glass-panel glass-panel-interactive'
       )}
     >
       {/* Countdown chip is rendered inside the title row below so it shares
@@ -92,7 +92,7 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
                 href={task.x_post_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-xs text-white/40 hover:text-[#00D4FF] transition-colors"
+                className="inline-flex items-center gap-2 text-xs text-white/70 hover:text-[#00D4FF] transition-colors"
               >
                 Open on X →
               </a>
@@ -111,7 +111,7 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
               <span className="text-xs font-bold text-[#D4A017]">+{task.points}</span>
             </div>
           </div>
-          <p className="text-sm text-white/40 leading-relaxed flex-1">{task.description}</p>
+          <p className="text-sm text-white/70 leading-relaxed flex-1">{task.description}</p>
         </>
       )}
 
@@ -128,7 +128,7 @@ export function TaskCard({ task, submissionStatus, isLoggedIn, onSubmit }: TaskC
             Submit Proof
           </Button>
         ) : (
-          <p className="text-xs text-white/20">Sign in to submit</p>
+          <p className="text-xs text-white/55">Sign in to submit</p>
         )}
       </div>
     </article>

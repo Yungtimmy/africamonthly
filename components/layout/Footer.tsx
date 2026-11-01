@@ -12,7 +12,7 @@ export function Footer() {
         <div className="absolute top-0 left-0 w-[20vw] h-[15vw] rounded-full bg-[#D4A017]/3 blur-[80px]" />
       </div>
 
-      <div className="relative bg-[#080D18]/80 backdrop-blur-sm">
+      <div className="relative glass-footer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {/* Brand */}
@@ -25,21 +25,21 @@ export function Footer() {
                   Africa<span className="text-[#00D4FF]">Monthly</span>
                 </span>
               </Link>
-              <p className="text-sm text-white/30 leading-relaxed">
+              <p className="text-sm text-white/60 leading-relaxed">
                 Compete. Engage. Win. The premier monthly leaderboard for the African community, powered by Injective Chain.
               </p>
               <div className="flex gap-2 mt-5">
                 <a
                   href="https://x.com/INJAfrica"
                   aria-label="Twitter"
-                  className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors"
                 >
                   <XIcon size={17} />
                 </a>
                 <a
                   href="https://t.me/INJECTIVEAFRICAN"
                   aria-label="Telegram"
-                  className="p-2 rounded-lg text-white/30 hover:text-[#00D4FF] hover:bg-[#00D4FF]/8 transition-colors"
+                  className="p-2 rounded-lg text-white/60 hover:text-[#00D4FF] hover:bg-[#00D4FF]/8 transition-colors"
                 >
                   <MessageCircle size={17} />
                 </a>
@@ -48,16 +48,17 @@ export function Footer() {
 
             {/* Links */}
             <div>
-              <h3 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-5">Navigation</h3>
+              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-widest mb-5">Navigation</h3>
               <ul className="space-y-2.5">
                 {[
                   { href: '/', label: 'Home' },
                   { href: '/leaderboard', label: 'Leaderboard' },
+                  { href: '/leaderboard/history', label: 'Past leaderboards' },
                   { href: '/tasks', label: 'Tasks' },
                   { href: '/profile', label: 'Profile' },
                 ].map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-white/30 hover:text-[#00D4FF] transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-[#00D4FF] transition-colors">
                       {link.label}
                     </Link>
                   </li>
@@ -67,8 +68,8 @@ export function Footer() {
 
             {/* Earn info */}
             <div>
-              <h3 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-5">How to Earn</h3>
-              <ul className="space-y-3 text-sm text-white/30">
+              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-widest mb-5">How to Earn</h3>
+              <ul className="space-y-3 text-sm text-white/60">
                 <li className="flex items-start gap-2">
                   <span className="text-[#00D4FF] font-bold shrink-0 leading-snug">→</span>
                   Complete tasks posted by the team
@@ -85,7 +86,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="border-t border-white/5 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/20">
+          <div className="border-t border-white/5 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/55">
             <p>© {new Date().getFullYear()} Africa Monthly. All rights reserved.</p>
             <p>Built for the African diaspora · Powered by Injective</p>
           </div>

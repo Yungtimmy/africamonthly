@@ -36,17 +36,17 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
       <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <Link
           href="/leaderboard"
-          className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-[#00D4FF] transition-colors mb-8 min-h-[44px]"
+          className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-[#00D4FF] transition-colors mb-8 min-h-[44px]"
         >
           <ArrowLeft size={16} /> Back to leaderboard
         </Link>
 
-        <section className="rounded-2xl p-5 sm:p-6 bg-white/3 border border-white/8 backdrop-blur-sm mb-5">
+        <section className="rounded-2xl p-5 sm:p-6 glass-panel mb-5">
           <div className="flex items-center gap-4">
             <Avatar src={user.discordAvatar ?? undefined} name={user.discordUsername} size="lg" />
             <div className="min-w-0">
               <h1 className="font-serif text-xl sm:text-2xl font-bold text-white truncate">{user.discordUsername}</h1>
-              <p className="text-sm text-white/40 mt-1">
+              <p className="text-sm text-white/70 mt-1">
                 Rank <span className="text-[#00D4FF]">#{user.rank}</span> this month
               </p>
             </div>
@@ -54,14 +54,14 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
         </section>
 
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="rounded-2xl p-4 bg-[#00D4FF]/8 border border-[#00D4FF]/20">
+          <div className="rounded-2xl p-4 glass-panel border-[#00D4FF]/35">
             <div className="flex items-center gap-1.5 text-[#00D4FF] mb-1">
               <TrendingUp size={14} />
               <span className="text-[10px] font-semibold uppercase tracking-wider">Monthly</span>
             </div>
             <p className="font-serif font-bold text-2xl text-white">{formatPoints(user.monthlyPoints)}</p>
           </div>
-          <div className="rounded-2xl p-4 bg-white/3 border border-white/8">
+          <div className="rounded-2xl p-4 glass-panel">
             <div className="flex items-center gap-1.5 text-[#D4A017] mb-1">
               <Trophy size={14} />
               <span className="text-[10px] font-semibold uppercase tracking-wider">All-time</span>
@@ -75,7 +75,7 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
         </h2>
 
         {history.length === 0 ? (
-          <p className="text-center text-white/30 text-sm py-12 rounded-2xl border border-white/6 border-dashed">
+          <p className="text-center text-white/70 text-sm py-12 rounded-2xl glass-panel border-dashed">
             No points awarded yet.
           </p>
         ) : (
@@ -89,10 +89,8 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
               return (
                 <li
                   key={`${item.type}-${item.id}`}
-                  className={`flex items-start gap-3 rounded-xl px-4 py-3.5 border min-h-[56px] ${
-                    isDeduction
-                      ? 'bg-red-500/5 border-red-500/15'
-                      : 'bg-white/3 border-white/6'
+                  className={`flex items-start gap-3 rounded-xl px-4 py-3.5 min-h-[56px] glass-panel ${
+                    isDeduction ? 'border-red-400/35' : ''
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">
@@ -109,7 +107,7 @@ export function PublicProfileClient({ user, history }: PublicProfileClientProps)
                       <span className="text-[10px] text-red-400/80">{'\u00b7 deducted'}</span>
                     )}
                   </div>
-                  <p className="text-[10px] text-white/35 mt-1">{formatRelativeTimeLong(item.awardedAt)}</p>
+                  <p className="text-[10px] text-white/65 mt-1">{formatRelativeTimeLong(item.awardedAt)}</p>
                 </div>
                 <span className={`text-sm font-bold shrink-0 ${isDeduction ? 'text-red-400' : 'text-[#D4A017]'}`}>
                   {sign}{displayPoints}

@@ -86,7 +86,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
 
   if (submissions.length === 0) {
     return (
-      <div className="text-center py-16 text-white/30">
+      <div className="text-center py-16 text-white/60">
         <CheckCircle className="w-10 h-10 mx-auto mb-3 text-white/10" />
         <p className="font-serif text-xl text-white/60 mb-1">All caught up</p>
         <p className="text-sm">No pending submissions.</p>
@@ -106,7 +106,7 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
         return (
           <div
             key={sub.id}
-            className="bg-white/3 border border-white/8 rounded-2xl p-5 space-y-4 backdrop-blur-sm"
+            className="glass-panel rounded-2xl p-5 space-y-4 backdrop-blur-sm"
           >
             {/* User + time */}
             <div className="flex items-center gap-3">
@@ -119,14 +119,14 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
                 <p className="text-sm font-semibold text-white truncate">
                   {sub.users?.discord_username ?? 'Unknown user'}
                 </p>
-                <p className="text-xs text-white/30">{formatRelativeTime(sub.created_at)}</p>
+                <p className="text-xs text-white/60">{formatRelativeTime(sub.created_at)}</p>
               </div>
               <Badge variant="points">+{sub.tasks?.points ?? 0} pts</Badge>
             </div>
 
             {/* Task info */}
-            <div className="bg-white/4 rounded-xl p-3">
-              <p className="text-xs text-white/30 mb-1">Task</p>
+            <div className="glass-panel rounded-xl p-3">
+              <p className="text-xs text-white/60 mb-1">Task</p>
               {isXPost ? (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -154,8 +154,8 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
 
             {/* Awarded actions checklist (X-post only) */}
             {showChecklist && (
-              <div className="bg-white/4 rounded-xl p-3 space-y-1">
-                <p className="text-xs text-white/30 mb-2">Awarded actions</p>
+              <div className="glass-panel rounded-xl p-3 space-y-1">
+                <p className="text-xs text-white/60 mb-2">Awarded actions</p>
                 {taskXActions.map((action) => {
                   const checked = getActions(sub).includes(action)
                   return (
@@ -180,22 +180,22 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
                       <span className={`text-sm ${checked ? 'text-white' : 'text-white/55'}`}>
                         {getXActionLabel(action)}
                       </span>
-                      <span className="ml-auto text-xs text-white/40 font-mono">
+                      <span className="ml-auto text-xs text-white/70 font-mono">
                         +{getXActionPoints(action)}
                       </span>
                     </button>
                   )
                 })}
                 <div className="flex items-center justify-between pt-2.5 mt-1.5 border-t border-white/5">
-                  <span className="text-xs text-white/40">Awarding</span>
+                  <span className="text-xs text-white/70">Awarding</span>
                   <span className="text-sm font-semibold text-[#D4A017]">+{awardedPoints} pts</span>
                 </div>
               </div>
             )}
 
             {/* Proof */}
-            <div className="bg-white/4 rounded-xl p-3 space-y-2">
-              <p className="text-xs text-white/30 flex items-center gap-1.5">
+            <div className="glass-panel rounded-xl p-3 space-y-2">
+              <p className="text-xs text-white/60 flex items-center gap-1.5">
                 <Link2 size={11} /> Proof submitted
               </p>
               <a
@@ -208,8 +208,8 @@ export function SubmissionsClient({ initialSubmissions }: { initialSubmissions: 
               </a>
               {sub.proof_note && (
                 <div className="flex items-start gap-1.5 mt-1 pt-2 border-t border-white/5">
-                  <ImageIcon size={11} className="text-white/30 mt-0.5 shrink-0" />
-                  <p className="text-xs text-white/40">{sub.proof_note}</p>
+                  <ImageIcon size={11} className="text-white/60 mt-0.5 shrink-0" />
+                  <p className="text-xs text-white/70">{sub.proof_note}</p>
                 </div>
               )}
             </div>

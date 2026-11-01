@@ -60,23 +60,23 @@ export function LeaderboardClient({ users, daysLeft }: { users: LeaderboardUser[
   const top3 = sorted.slice(0, 3)
 
   const rowConfig = [
-    { bar: 'bg-[#D4A017]', pt: 'text-[#D4A017]', bg: 'bg-[#D4A017]/5 border-[#D4A017]/20', hover: 'hover:border-[#D4A017]/40' },
-    { bar: 'bg-[#00D4FF]', pt: 'text-[#00D4FF]', bg: 'bg-[#00D4FF]/4 border-[#00D4FF]/15', hover: 'hover:border-[#00D4FF]/35' },
-    { bar: 'bg-amber-700', pt: 'text-amber-600', bg: 'bg-amber-900/10 border-amber-800/20', hover: 'hover:border-amber-700/30' },
-    { bar: 'bg-white/10', pt: 'text-[#00D4FF]', bg: 'bg-white/2 border-white/5', hover: 'hover:border-white/10' },
+    { bar: 'bg-[#D4A017]', pt: 'text-[#D4A017]', border: 'border-[#D4A017]/35', hover: 'hover:border-[#D4A017]/60' },
+    { bar: 'bg-[#00D4FF]', pt: 'text-[#00D4FF]', border: 'border-[#00D4FF]/30', hover: 'hover:border-[#00D4FF]/55' },
+    { bar: 'bg-[#CD7F32]', pt: 'text-[#E0A060]', border: 'border-[#CD7F32]/40', hover: 'hover:border-[#E0A060]/60' },
+    { bar: 'bg-white/25', pt: 'text-[#7BE7FF]', border: 'border-white/15', hover: 'hover:border-white/30' },
   ]
 
   return (
     <>
       <div className="flex justify-center mb-10">
-        <div className="inline-flex p-1 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm">
+        <div className="inline-flex p-1 rounded-full glass-panel">
           {([['monthly', 'This Month'], ['alltime', 'All-Time']] as const).map(([key, label]) => (
             <button
               key={key}
               type="button"
               onClick={() => setMode(key)}
               className={`px-5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all min-h-[36px] ${
-                mode === key ? 'bg-[#D4A017]/20 text-[#D4A017] border border-[#D4A017]/30' : 'text-white/40 hover:text-white/70'
+                mode === key ? 'bg-[#D4A017]/20 text-[#D4A017] border border-[#D4A017]/30' : 'text-white/70 hover:text-white/70'
               }`}
             >
               {label}
@@ -119,8 +119,7 @@ export function LeaderboardClient({ users, daysLeft }: { users: LeaderboardUser[
                   </p>
                 </div>
                 <div
-                  className={`w-full rounded-t-xl border-t-2 ${cfg.border} flex items-end justify-center pb-3 ${cfg.height} backdrop-blur-sm transition-colors group-hover:bg-white/[0.06]`}
-                  style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.04), transparent)' }}
+                  className={`glass-panel w-full rounded-t-xl border-t-2 ${cfg.border} flex items-end justify-center pb-3 ${cfg.height} transition-colors`}
                 >
                   <span className="font-serif text-3xl font-bold text-white/10">#{rank}</span>
                 </div>
@@ -138,22 +137,22 @@ export function LeaderboardClient({ users, daysLeft }: { users: LeaderboardUser[
             <Link
               key={u.id}
               href={`/users/${u.id}`}
-              className={`flex items-center gap-2 sm:gap-4 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 border transition-all duration-200 backdrop-blur-sm ${c.bg} ${c.hover}`}
+              className={`glass-panel glass-panel-interactive flex items-center gap-2 sm:gap-4 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 min-h-[64px] ${c.border} ${c.hover}`}
             >
               <div className={`w-1 h-9 rounded-full shrink-0 ${c.bar}`} />
-              <span className={`font-serif font-bold text-lg w-6 text-center ${rank <= 3 ? c.pt : 'text-white/25'}`}>{rank}</span>
+              <span className={`font-serif font-bold text-lg w-6 text-center ${rank <= 3 ? c.pt : 'text-white/55'}`}>{rank}</span>
               <Avatar src={u.discord_avatar} name={u.discord_username} size="sm" />
               <span className="flex-1 font-medium text-white/80 truncate">{u.discord_username}</span>
               <div className="text-right shrink-0">
                 <span className={`font-serif font-bold text-lg ${c.pt}`}>{formatPoints(metric(u))}</span>
-                <p className="text-xs text-white/20">{secondary(u)}</p>
+                <p className="text-xs text-white/55">{secondary(u)}</p>
               </div>
             </Link>
           )
         })}
 
         {sorted.length === 0 && (
-          <div className="text-center py-24 text-white/30">
+          <div className="text-center py-24 text-white/60">
             <Trophy className="w-14 h-14 mx-auto mb-4 text-white/10" />
             <p className="font-serif text-2xl text-white/60 mb-2">No competitors yet</p>
             <p className="text-sm">Be the first to earn points this month.</p>
@@ -162,7 +161,7 @@ export function LeaderboardClient({ users, daysLeft }: { users: LeaderboardUser[
       </div>
 
       {sorted.length > 3 && (
-        <p className="text-center text-xs text-white/20 mt-10">
+        <p className="text-center text-xs text-white/55 mt-10">
           Top {sorted.length} competitors &middot; Resets in {daysLeft} days
         </p>
       )}

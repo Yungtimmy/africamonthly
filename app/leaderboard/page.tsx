@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Trophy } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getDaysUntilEndOfMonth, getCurrentMonthLabel } from '@/lib/utils'
@@ -35,14 +36,20 @@ export default async function LeaderboardPage() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Header */}
         <div className="text-center mb-10 sm:mb-14">
-          <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#D4A017]/8 border border-[#D4A017]/20 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full glass-chip border-[#D4A017]/35">
             <Trophy className="w-3.5 h-3.5 text-[#D4A017]" />
             <span className="text-xs font-semibold text-[#D4A017] uppercase tracking-widest">Rankings</span>
           </div>
           <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-3">{monthLabel}</h1>
-          <p className="text-white/40 text-base sm:text-lg">
+          <p className="text-white/70 text-base sm:text-lg">
             {daysLeft} days remaining &middot; Top 5 earn rewards
           </p>
+          <Link
+            href="/leaderboard/history"
+            className="inline-flex items-center justify-center min-h-[44px] mt-3 text-sm font-semibold text-[#00D4FF] hover:text-white"
+          >
+            Past leaderboards
+          </Link>
         </div>
 
         <LeaderboardClient users={users} daysLeft={daysLeft} />

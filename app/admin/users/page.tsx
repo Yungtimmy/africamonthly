@@ -20,7 +20,7 @@ export default async function AdminUsersPage() {
           {users.length}
         </span>
       </div>
-      <p className="text-white/30 text-sm mb-8">Search users and grant manual points.</p>
+      <p className="text-white/60 text-sm mb-8">Search users and grant manual points.</p>
       <AdminUsersClient initialUsers={users} />
     </div>
   )

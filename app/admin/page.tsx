@@ -39,7 +39,7 @@ export default async function AdminDashboard() {
         <h1 className="font-serif text-3xl font-bold text-white">Dashboard</h1>
         <ResetMonthButton />
       </div>
-      <p className="text-white/30 text-sm mb-10">Overview of this month&apos;s activity.</p>
+      <p className="text-white/60 text-sm mb-10">Overview of this month&apos;s activity.</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
@@ -47,8 +47,8 @@ export default async function AdminDashboard() {
             key={card.label}
             className={`relative rounded-2xl p-6 overflow-hidden backdrop-blur-sm transition-all ${
               card.accent
-                ? 'bg-amber-500/5 border border-amber-500/25'
-                : 'bg-white/3 border border-white/8 hover:border-[#00D4FF]/20'
+                ? 'glass-panel border-amber-400/40'
+                : 'glass-panel'
             }`}
           >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/30 to-transparent" />
@@ -56,7 +56,7 @@ export default async function AdminDashboard() {
             <p className={`font-serif font-bold text-3xl ${card.accent ? 'text-amber-400' : 'text-white'}`}>
               {card.value}
             </p>
-            <p className="text-xs text-white/30 mt-1">{card.label}</p>
+            <p className="text-xs text-white/60 mt-1">{card.label}</p>
           </div>
         ))}
       </div>

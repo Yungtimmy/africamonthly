@@ -42,8 +42,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       </div>
       <div
         className={cn(
-          'relative w-full max-w-md rounded-2xl z-[50] flex flex-col max-h-[90vh]',
-          'bg-[#0D1525]/90 border border-[#00D4FF]/20 shadow-[0_0_40px_rgba(0,212,255,0.1),0_25px_60px_rgba(0,0,0,0.6)]',
+          'relative w-full max-w-md rounded-2xl z-[50] flex flex-col max-h-[90vh] glass-modal',
           className
         )}
         role="dialog"
@@ -59,7 +58,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
