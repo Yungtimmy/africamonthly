@@ -15,6 +15,21 @@ const MONTH_NAMES = [
   'December',
 ] as const
 
+const SHORT_MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
 export function isMonthKey(value: string): boolean {
   return MONTH_KEY.test(value)
 }
@@ -48,6 +63,13 @@ export function labelForMonthKey(key: string): string {
   if (!match) return key
   const name = MONTH_NAMES[Number(match[2]) - 1]
   return `${name} ${match[1]}`
+}
+
+/** Compact picker label, e.g. `Oct 2026`. */
+export function shortLabelForMonthKey(key: string): string {
+  const match = MONTH_KEY.exec(key)
+  if (!match) return key
+  return `${SHORT_MONTH_NAMES[Number(match[2]) - 1]} ${match[1]}`
 }
 
 /** Inclusive range. Empty when `start` is after `end` or either key is invalid. */
